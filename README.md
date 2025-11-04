@@ -1,4 +1,4 @@
-# amake: A tool help you write more flexible and maintainable Makefiles
+# amake: A tool to help you write more flexible and maintainable Makefiles
 
 
 ## THIS PROJECT IS WORKING IN PROGRESS.
