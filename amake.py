@@ -10,6 +10,7 @@ Usage:
     amake edit [-C <dir> | --current-dir=<dir>] [-T | --text-editor] [<schemafile>]
     amake process [-C <dir> | --current-dir=<dir>] [--vars=<vars,...>] [<schemafile>] [<configfile>]
     amake generate [-C <dir> | --current-dir=<dir>] [-o <outputfile> | --output=<outputfile>] [-Y | --yes] [<schemafile>] [<configfile>]
+    amake appconfig (--set=<config-paris> | --reset | --list | --edit) [-y | --yes]
 
 Commands:
     init        Initialize a new amake project in the current directory. An amake project means a directory
@@ -56,6 +57,8 @@ Commands:
                 "strip" processor is the last processor in the chain, its output will be the final value of the "INCLUDES"
                 variable and be passed to the makefile.
     generate    Generate a build script based on the amake schema and the variable values in the config file.
+    appconfig   A command to manage the amake app configuration.
+
 
 
 Options:
@@ -85,9 +88,24 @@ Options:
     -o <outputfile> | --output=<outputfile>  Specify the output file for the generated build script. If not specified,
                                              use "build.sh" in the current directory.
 
-    -Y, --yes                                When specified, it will not ask for confirmation before generating the
-                                             build script. If not specified, it will ask for confirmation if the output
-                                             file already exists.
+    -Y, --yes                                When specified, it will not ask for confirmation before some important
+                                             operations, such as generating the build script or resetting the app config .etc.
+
+    --set=<config-paris>                     This option is used with the "appconfig" command. It is used to set the value
+                                             of a specific config item. Syntax: --set="config1=value1,config2=value2,...".
+                                             For example, user can change the locale of the app by the following command:
+                                                amake appconfig --set=locale=en_US
+
+    --reset                                  This option is used with the "appconfig" command. It is used to reset the
+                                             app config. Sometimes, the app config file maybe corrupted, this option will
+                                             remove the app config file and create a new one with default values.
+
+    --list                                   This option is used with the "appconfig" command. It is used to list all
+                                             config items and their current values.
+
+    --edit                                   This option is used with the "appconfig" command. It is used to edit the
+                                             app config file in a text editor.
+
 """
 
 import builtins
@@ -107,6 +125,9 @@ __APP_LOCALEDIR__ = os.path.join(__APP_DATADIR__, "locales")
 __APP_CONFIG_FILEPATH__ = os.path.join(__APP_DATADIR__, "amake_config.json")
 __APP_REPO__ = "https://github.com/ziomlab/amake.git"
 __APP_AUTHOR__ = "ziomlab"
+
+from amake.utils import parse_key_value_pairs
+
 _DEBUG_MODE = True
 
 setattr(builtins, "_amake_app_name", __APP_NAME__)
@@ -114,9 +135,10 @@ setattr(builtins, "_amake_app_datadir", __APP_DATADIR__)
 setattr(builtins, "_amake_app_version", __APP_VERSION__)
 setattr(builtins, "_amake_app_repo", __APP_REPO__)
 setattr(builtins, "_amake_app_author", __APP_AUTHOR__)
+setattr(builtins, "_amake_appconfig_filepath", __APP_CONFIG_FILEPATH__)
 
 
-ALL_COMMANDS = ("edit", "init", "init-config", "process", "generate")
+ALL_COMMANDS = ("edit", "init", "init-config", "process", "generate", "appconfig")
 
 
 def _debug(msg):
@@ -313,6 +335,46 @@ def _run_command_generate(args) -> int:
     )
 
 
+def _run_command_appconfig(args) -> int:
+    global _app_config
+
+    from amake.tools import (
+        appconfig_list,
+        appconfig_edit,
+        appconfig_reset,
+        appconfig_set,
+    )
+
+    if any_true(args, "--list"):
+        return appconfig_list(_app_config)
+
+    if any_true(args, "--edit"):
+        return appconfig_edit(_app_config)
+
+    if any_true(args, "--reset"):
+        no_confirm = any_true(args, "--yes", "-Y")
+        return appconfig_reset(_app_config, no_confirm)
+
+    if any_true(args, "--set"):
+        print("Setting app configs...")
+        config_paris_str = get_one_of(args, "--set", "<config-paris>", default=None)
+        if not config_paris_str.strip():
+            print("Please specify config-paris!")
+            return -1
+
+        try:
+            config_paris = parse_key_value_pairs(config_paris_str)
+        except Exception as e:
+            print(f"Failed to parse config-paris: {e}")
+            return -1
+        if not config_paris:
+            print("No config-paris specified!")
+            return -1
+        return appconfig_set(_app_config, config_paris)
+
+    return -1
+
+
 def main():
     from amake.thirdparty.docopt import docopt
 
@@ -338,6 +400,9 @@ def main():
 
     if args.get("generate", True):
         return _run_command_generate(args)
+
+    if args.get("appconfig", True):
+        return _run_command_appconfig(args)
 
     return -1
 

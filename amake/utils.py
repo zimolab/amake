@@ -4,7 +4,7 @@ import sys
 import tkinter
 from pathlib import Path
 from tkinter import messagebox
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 
 
 def show_error_message(message: str, title: Optional[str] = None):
@@ -69,3 +69,17 @@ def open_file_in_editor(file_path: Union[str, Path]):
     else:
         # Linux 和其他 Unix 系统
         subprocess.run(["xdg-open", file_path])
+
+
+def parse_key_value_pairs(s: str, sep: str = ",") -> Dict[str, str]:
+    result = {}
+    # 使用分号或其他分隔符作为键值对的分隔符
+    pairs = s.split(sep)
+    for pair in pairs:
+        # 只分割第一个等号，以防值中包含等号
+        if "=" in pair:
+            parts = pair.split("=", 1)  # 只分割第一个等号
+            key = parts[0].strip()
+            value = parts[1].strip()
+            result[key] = value
+    return result

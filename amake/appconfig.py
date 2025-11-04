@@ -1,5 +1,6 @@
 import builtins
 import dataclasses
+from typing import Dict, Any, Callable
 
 from .common import Serializable
 
@@ -41,3 +42,59 @@ class AmakeAppConfig(Serializable):
     @classmethod
     def default(cls) -> "AmakeAppConfig":
         return cls()
+
+    @staticmethod
+    def _to_bool(value: str) -> bool:
+        return value.strip().lower() in ["true", "yes", "1"]
+
+    @staticmethod
+    def _to_str(value: str) -> str:
+        return str(value)
+
+    @staticmethod
+    def _to_int(value: str) -> int:
+        return int(value)
+
+    def _value_converter(self, field_type: str) -> Callable[[str], Any]:
+        if field_type == "bool":
+            return self._to_bool
+        elif field_type == "str":
+            return self._to_str
+        elif field_type == "int":
+            return self._to_int
+        else:
+            return self._to_str
+
+    def list(self) -> str:
+        fields_names = [
+            f.name for f in dataclasses.fields(self) if not f.name.startswith("_")
+        ]
+        ls = []
+        for field_name in fields_names:
+            value = getattr(self, field_name)
+            ls.append(field_name.ljust(20) + f"= {value}")
+        return "\n".join(ls)
+
+    def set(self, new_configs: Dict[str, str]):
+        fields_types = {
+            f.name: f.type
+            for f in dataclasses.fields(self)
+            if not f.name.startswith("_")
+        }
+        fields_names = [
+            f.name for f in dataclasses.fields(self) if not f.name.startswith("_")
+        ]
+
+        for key, value in new_configs.items():
+            if key not in fields_names:
+                print(f"Skipping: {key}")
+                continue
+            filed_type = fields_types.get(key, str)
+            conv = self._value_converter(filed_type.__name__)
+            print(f"Setting: {key.ljust(20)} = {value}")
+            try:
+                value = conv(value)
+            except ValueError:
+                print(f"invalid value: {value}")
+                continue
+            setattr(self, key, value)
