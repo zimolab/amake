@@ -57,6 +57,7 @@ Commands:
                 "strip" processor is the last processor in the chain, its output will be the final value of the "INCLUDES"
                 variable and be passed to the makefile.
     generate    Generate a build script based on the amake schema and the variable values in the config file.
+
     appconfig   A command to manage the amake app configuration.
 
 
