@@ -1,5 +1,8 @@
 # amake: A tool help you write more flexible and maintainable Makefiles
 
+
+## THIS PROJECT IS WORKING IN PROGRESS.
+
 command help:
 
 ```text
