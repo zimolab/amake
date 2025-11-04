@@ -105,7 +105,16 @@ __APP_VERSION__ = "0.1.0"
 __APP_DATADIR__ = platformdirs.user_data_dir(__APP_NAME__.lower())
 __APP_LOCALEDIR__ = os.path.join(__APP_DATADIR__, "locales")
 __APP_CONFIG_FILEPATH__ = os.path.join(__APP_DATADIR__, "amake_config.json")
+__APP_REPO__ = "https://github.com/ziomlab/amake.git"
+__APP_AUTHOR__ = "ziomlab"
 _DEBUG_MODE = True
+
+setattr(builtins, "_amake_app_name", __APP_NAME__)
+setattr(builtins, "_amake_app_datadir", __APP_DATADIR__)
+setattr(builtins, "_amake_app_version", __APP_VERSION__)
+setattr(builtins, "_amake_app_repo", __APP_REPO__)
+setattr(builtins, "_amake_app_author", __APP_AUTHOR__)
+
 
 ALL_COMMANDS = ("edit", "init", "init-config", "process", "generate")
 

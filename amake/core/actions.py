@@ -1,3 +1,4 @@
+import builtins
 import shlex
 import subprocess
 import traceback
@@ -13,6 +14,9 @@ from ..appconfig import AmakeAppConfig
 from ..makeoptions import MAKE_OPT_MAKE_BIN_KEY, MakeOptions
 from ..processor import ProcessorExecutor
 from ..schema import AmakeSchema, AmakeConfigurations
+
+AMAKE_APP_NAME = getattr(builtins, "_amake_app_name", "amake")
+AMAKE_APP_VERSION = getattr(builtins, "_amake_app_version", "0.0.0")
 
 
 def _run_cmd_simple(
@@ -81,8 +85,6 @@ class AmakeActionsManager(object):
             Action(tr_("Print Make Help"), self.print_make_help),
             Action(tr_("Generate Command Line"), self.generate_command_line),
             Action(tr_("Export Build Script"), self.export_build_script),
-            MenuSeparator(),
-            # Action(tr_("Export Schema Template"), self.export_schema_template),
         ]
         menu_tools = Menu(title=tr_("Tools"), actions=tools_actions)
 
@@ -296,17 +298,6 @@ class AmakeActionsManager(object):
 
     def show_license_dialog(self, window: FnExecuteWindow, action: Action):
         pass
-
-    # def export_schema_template(self, window: FnExecuteWindow, action: Action):
-    #     template = get_schema_template()
-    #     save_path = window.select_save_file(
-    #         title="Export Schema Template",
-    #         initialfile="",
-    #         filetypes=[("JSON", "*.json"), ("All Files", "*.*")],
-    #     )
-    #     if not save_path:
-    #         return
-    #     template.save(save_path, indent=4, ensure_ascii=False, encoding="utf-8")
 
     @staticmethod
     def _open_url(url: str):
