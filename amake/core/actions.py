@@ -9,6 +9,7 @@ from typing import List, Optional, Any, Callable
 from pyguiadapterlite import FnExecuteWindow, Action, Menu, Separator as MenuSeparator
 from pyguiadapterlite.components.textview import SimpleTextViewer
 
+from ._aboutdlg import AboutDialog
 from .cmd import AmakeCommand
 from .widgets import AmakeWidgets
 from .. import common
@@ -18,6 +19,7 @@ from ..appconfig import AmakeAppConfig
 from ..makeoptions import MAKE_OPT_MAKE_BIN_KEY, MakeOptions
 from ..processor import ProcessorExecutor
 from ..schema import AmakeSchema, AmakeConfigurations
+from ..utils import move_to_center_of
 
 AMAKE_APP_NAME = getattr(builtins, "_amake_app_name", "amake")
 AMAKE_APP_VERSION = getattr(builtins, "_amake_app_version", "0.0.0")
@@ -330,11 +332,11 @@ class AmakeActionsManager(object):
         pass
 
     def show_about_dialog(self, window: FnExecuteWindow, action: Action):
-        pass
+        window.show_custom_dialog(AboutDialog, title="About")
 
-    def show_license_dialog(self, window: FnExecuteWindow, action: Action):
+    @staticmethod
+    def show_license_dialog(window: FnExecuteWindow, action: Action):
         msgs = Messages()
-        print(AMAKE_LICENSE_FILE)
         if not AMAKE_LICENSE_FILE or not os.path.isfile(AMAKE_LICENSE_FILE):
             window.show_error(
                 message=msgs.MSG_NO_LICENSE_FILE, title=msgs.MSG_ERROR_DIALOG_TITLE
@@ -347,6 +349,7 @@ class AmakeActionsManager(object):
             width=800,
             height=600,
         )
+        move_to_center_of(viewer, window.parent)
         viewer.set_text(text)
         viewer.show_modal()
 
