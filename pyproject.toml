@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-pyguiadapterlite = "^0.6.7"
+pyguiadapterlite = "^0.6.9"
 
 [build-system]
 requires = ["poetry-core"]
