@@ -31,6 +31,8 @@ class _Messages:
 
         self.MSG_SUCCESS_DIALOG_TITLE = tr_("Success")
         self.MSG_FAILURE_DIALOG_TITLE = tr_("Failure")
+        self.MSG_INFO_DIALOG_TITLE = tr_("Information")
+        self.MSG_CONFIRM_DIALOG_TITLE = tr_("Confirmation")
 
         self.MSG_ACTION_SAVE_CONFIGS = tr_("Save Configurations")
         self.MSG_ACTION_LOAD_CONFIGS = tr_("Load Configurations")
@@ -45,6 +47,12 @@ class _Messages:
         self.MSG_ACTION_SCHEMA_WEBSITE = tr_("Goto Schema Website")
         self.MSG_CONFIGS_SAVE_SUCCESS = tr_("Configurations saved successfully")
         self.MSG_CONFIGS_SAVE_FAILURE = tr_("Failed to save configurations")
+        self.MSG_EDIT_APP_CONFIGS = tr_("Edit App Configs")
+        self.MSG_RESET_APP_CONFIGS = tr_("Reset App Configs")
+        self.MSG_ASK_RESET_APP_CONFIGS = tr_("Do you want to reset app configs?")
+        self.MSG_APP_CONFIGS_CHANGE_INFO = tr_(
+            "The modifications to the app config file will be applied after restarting the application."
+        )
 
 
 _MESSAGES: Optional[_Messages] = None
