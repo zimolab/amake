@@ -123,21 +123,27 @@ from pathlib import Path
 
 __APP_NAME__ = "amake"
 __APP_VERSION__ = "0.1.0"
+__APP_DESCRIPTION__ = "A makefile assistant tool to help you write more flexible and maintainable makefiles."
+__APP_LICENSE__ = "MIT License"
+__APP_COPYRIGHT__ = "Copyright (c) 2021 zimolab"
 __APP_DATADIR__ = platformdirs.user_data_dir(__APP_NAME__.lower())
 __APP_LOCALEDIR__ = os.path.join(__APP_DATADIR__, "locales")
 __APP_CONFIG_FILEPATH__ = os.path.join(__APP_DATADIR__, "amake_config.json")
-__APP_REPO__ = "https://github.com/ziomlab/amake.git"
+__APP_REPO__ = "https://github.com/zimolab/amake"
 __APP_AUTHOR__ = "ziomlab"
 
 
 _DEBUG_MODE = True
 
 setattr(builtins, "_amake_app_name", __APP_NAME__)
+setattr(builtins, "_amake_app_description", __APP_DESCRIPTION__)
 setattr(builtins, "_amake_app_datadir", __APP_DATADIR__)
 setattr(builtins, "_amake_app_version", __APP_VERSION__)
 setattr(builtins, "_amake_app_repo", __APP_REPO__)
 setattr(builtins, "_amake_app_author", __APP_AUTHOR__)
 setattr(builtins, "_amake_appconfig_filepath", __APP_CONFIG_FILEPATH__)
+setattr(builtins, "_amake_app_license", __APP_LICENSE__)
+setattr(builtins, "_amake_app_copyright", __APP_COPYRIGHT__)
 
 
 ALL_COMMANDS = ("edit", "init", "init-config", "process", "generate", "appconfig")

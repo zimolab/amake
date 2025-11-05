@@ -1,4 +1,3 @@
-import builtins
 import os
 import shlex
 import subprocess
@@ -21,8 +20,7 @@ from ..processor import ProcessorExecutor
 from ..schema import AmakeSchema, AmakeConfigurations
 from ..utils import move_to_center_of
 
-AMAKE_APP_NAME = getattr(builtins, "_amake_app_name", "amake")
-AMAKE_APP_VERSION = getattr(builtins, "_amake_app_version", "0.0.0")
+
 AMAKE_LICENSE_FILE = assets_dir("LICENSE")
 
 ACTION_ID_EDIT_APP_CONFIGS = "edit_app_configs"
