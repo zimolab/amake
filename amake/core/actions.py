@@ -3,7 +3,7 @@ import shlex
 import subprocess
 import traceback
 import webbrowser
-from typing import List, Optional
+from typing import List, Optional, Any, Callable
 
 from pyguiadapterlite import FnExecuteWindow, Action, Menu, Separator as MenuSeparator
 
@@ -18,6 +18,9 @@ from ..schema import AmakeSchema, AmakeConfigurations
 
 AMAKE_APP_NAME = getattr(builtins, "_amake_app_name", "amake")
 AMAKE_APP_VERSION = getattr(builtins, "_amake_app_version", "0.0.0")
+
+ACTION_ID_EDIT_APP_CONFIGS = "edit_app_configs"
+ACTION_ID_RESET_APP_CONFIGS = "reset_app_configs"
 
 
 def _run_cmd_simple(
@@ -61,12 +64,14 @@ class AmakeActionsManager(object):
         configurations: AmakeConfigurations,
         widgets: AmakeWidgets,
         processor_executor: ProcessorExecutor,
+        action_handler: Callable[[FnExecuteWindow, Action], Any],
     ):
         self._app_config = app_config
         self._schema = schema
         self._configurations = configurations
         self._widgets = widgets
         self._processor_executor = processor_executor
+        self._action_handler = action_handler
 
         self._menus = []
 
@@ -88,6 +93,17 @@ class AmakeActionsManager(object):
             Action(msgs.MSG_ACTION_PRINT_MAKE_HELP, self.print_make_help),
             Action(msgs.MSG_ACTION_GENERATE_CMD, self.generate_command_line),
             Action(msgs.MSG_ACTION_GENERATE_BUILD_SCRIPT, self.export_build_script),
+            MenuSeparator(),
+            Action(
+                msgs.MSG_EDIT_APP_CONFIGS,
+                on_triggered=self._edit_app_configs,
+                data=ACTION_ID_EDIT_APP_CONFIGS,
+            ),
+            Action(
+                msgs.MSG_RESET_APP_CONFIGS,
+                on_triggered=self._reset_app_configs,
+                data=ACTION_ID_RESET_APP_CONFIGS,
+            ),
         ]
         menu_tools = Menu(title=msgs.MSG_MENU_TOOLS, actions=tools_actions)
 
@@ -311,3 +327,20 @@ class AmakeActionsManager(object):
     @staticmethod
     def _open_url(url: str):
         webbrowser.open_new(url)
+
+    def _edit_app_configs(self, window: FnExecuteWindow, action: Action):
+        from ..tools import appconfig_edit
+
+        appconfig_edit(self._app_config)
+        self._action_handler(window, action)
+
+    def _reset_app_configs(self, window: FnExecuteWindow, action: Action):
+        from ..tools import appconfig_reset
+
+        msgs = Messages()
+        if not window.ask_yes_no(
+            message=msgs.MSG_ASK_RESET_APP_CONFIGS, title=msgs.MSG_CONFIRM_DIALOG_TITLE
+        ):
+            return
+        appconfig_reset(self._app_config, no_confirm=True)
+        self._action_handler(window, action)

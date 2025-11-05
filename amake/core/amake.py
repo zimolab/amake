@@ -10,9 +10,14 @@ from pyguiadapterlite import (
     uprint,
     FnExecuteWindowConfig,
     is_function_cancelled,
+    Action,
 )
 
-from .actions import AmakeActionsManager
+from .actions import (
+    AmakeActionsManager,
+    ACTION_ID_EDIT_APP_CONFIGS,
+    ACTION_ID_RESET_APP_CONFIGS,
+)
 from .cmd import AmakeCommand
 from .eventhandler import AmakeEventHandler, EventType
 from .widgets import AmakeWidgets
@@ -36,6 +41,8 @@ class Amake(object):
         self._configurations = configurations
         self._app_config = app_config
 
+        self._save_app_config_before_exit = True
+
         self._gui_adapter: Optional[GUIAdapter] = None
 
         self._processor_executor = self.create_processor_executor()
@@ -47,6 +54,7 @@ class Amake(object):
             configurations=self._configurations,
             widgets=self._widgets,
             processor_executor=self._processor_executor,
+            action_handler=self.handle_action_event,
         )
         self._event_handler = AmakeEventHandler()
         self._event_handler.add_event_callback(
@@ -63,6 +71,10 @@ class Amake(object):
         )
 
         self._execute_start_time = 0.0
+
+    @property
+    def save_app_config_before_exit(self) -> bool:
+        return self._save_app_config_before_exit
 
     @staticmethod
     def _on_run(command: AmakeCommand):
@@ -96,7 +108,6 @@ class Amake(object):
                     _debug_print(msgs.MSG_TERMINATING_PROCESS)
                     _hinted = True
                 process.terminate()
-                # process.kill()
         _debug_print(msgs.MSG_PROCESS_FINISHED)
         _debug_print(msgs.MSG_EXIT_CODE + str(process.returncode))
 
@@ -119,7 +130,8 @@ class Amake(object):
         )
         if ret is None:
             return False
-        self.update_and_save_app_config(window)
+        if self._save_app_config_before_exit:
+            self.update_and_save_app_config(window)
         if ret:
             return self._menu_manager.update_and_save_configurations(window)
         return True
@@ -212,6 +224,16 @@ class Amake(object):
         )
         adapter.run()
         self._gui_adapter = None
+
+    def handle_action_event(self, window: FnExecuteWindow, action: Action):
+        msgs = Messages()
+        if action.data in [ACTION_ID_EDIT_APP_CONFIGS, ACTION_ID_RESET_APP_CONFIGS]:
+            window.show_information(
+                message=msgs.MSG_APP_CONFIGS_CHANGE_INFO,
+                title=msgs.MSG_INFO_DIALOG_TITLE,
+            )
+            self._save_app_config_before_exit = False
+            return
 
     @staticmethod
     def create_processor_executor() -> ProcessorExecutor:

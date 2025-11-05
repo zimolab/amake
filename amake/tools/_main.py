@@ -68,8 +68,8 @@ def amake_main(
     try:
         app = Amake(app_config, schema, config)
         app.run()
-        print("Saving app config...")
-        app_config.save(ensure_ascii=False, indent=2, encoding="utf-8")
+        if app.save_app_config_before_exit:
+            app_config.save(ensure_ascii=False, indent=2, encoding="utf-8")
     except Exception as e:
         _error(f"Failed to run amake: {e}")
         print(f"Error: {e}")
