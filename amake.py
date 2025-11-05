@@ -116,6 +116,7 @@ import shutil
 import sys
 from typing import Optional
 
+
 from amake.thirdparty import platformdirs
 from pathlib import Path
 
@@ -128,7 +129,6 @@ __APP_CONFIG_FILEPATH__ = os.path.join(__APP_DATADIR__, "amake_config.json")
 __APP_REPO__ = "https://github.com/ziomlab/amake.git"
 __APP_AUTHOR__ = "ziomlab"
 
-from amake.utils import parse_key_value_pairs
 
 _DEBUG_MODE = True
 
@@ -196,6 +196,9 @@ def _setup_env():
     _debug(f"Setting environment variables...")
     os.environ["PYGUIADAPTERLITE_LOGGING_MESSAGE"] = "0"
     os.environ["PYGUIADAPTERLITE_LOCALE"] = _app_config.locale
+    import pyguiadapterlite
+
+    pyguiadapterlite.set_default_parameter_label_justify("left")
 
 
 _setup_env()
@@ -339,6 +342,7 @@ def _run_command_generate(args) -> int:
 
 def _run_command_appconfig(args) -> int:
     global _app_config
+    from amake.utils import parse_key_value_pairs
 
     from amake.tools import (
         appconfig_list,
