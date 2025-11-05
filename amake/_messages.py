@@ -33,6 +33,8 @@ class _Messages:
         self.MSG_FAILURE_DIALOG_TITLE = tr_("Failure")
         self.MSG_INFO_DIALOG_TITLE = tr_("Information")
         self.MSG_CONFIRM_DIALOG_TITLE = tr_("Confirmation")
+        self.MSG_WARNING_DIALOG_TITLE = tr_("Warning")
+        self.MSG_ERROR_DIALOG_TITLE = tr_("Error")
 
         self.MSG_ACTION_SAVE_CONFIGS = tr_("Save Configurations")
         self.MSG_ACTION_LOAD_CONFIGS = tr_("Load Configurations")
@@ -52,6 +54,24 @@ class _Messages:
         self.MSG_ASK_RESET_APP_CONFIGS = tr_("Do you want to reset app configs?")
         self.MSG_APP_CONFIGS_CHANGE_INFO = tr_(
             "The modifications to the app config file will be applied after restarting the application."
+        )
+        self.MSG_WAIT_EXECUTION_DONE = tr_("Please wait for execution to finish...")
+        self.MSG_MAKE_CMD = tr_("Make Command")
+        self.MSG_MAKE_TARGET = tr_("Make Target")
+        self.MSG_MAKE_OPTIONS = tr_("Make Options")
+        self.MSG_VARIABLES = tr_("Variables")
+        self.MSG_OVERRIDE_VARIABLES = tr_("Override")
+        self.MSG_CMD_LINE = tr_("Command Line")
+        self.MSG_FAILED_TO_GENERATE_CMD = tr_("Failed to generate command line")
+
+        self.MSG_GENERATE_SCRIPT_DIALOG_TITLE = tr_("Generate Build Script")
+        self.MSG_SHELL_SCRIPT_FILE_TYPE = tr_("Shell Script")
+        self.MSG_ALL_FILE_TYPE = tr_("All Files")
+        self.MSG_BUILD_SCRIPT_GENERATED = tr_(
+            "Build script generated successfully, you can find it at: "
+        )
+        self.MSG_FAILED_TO_GENERATE_SCRIPT = tr_(
+            "Failed to generate build script because of the following error: "
         )
 
 

@@ -91,6 +91,7 @@ class AmakeActionsManager(object):
         tools_actions = [
             Action(msgs.MSG_ACTION_TEST_MAKE_CMD, self.test_make_command),
             Action(msgs.MSG_ACTION_PRINT_MAKE_HELP, self.print_make_help),
+            MenuSeparator(),
             Action(msgs.MSG_ACTION_GENERATE_CMD, self.generate_command_line),
             Action(msgs.MSG_ACTION_GENERATE_BUILD_SCRIPT, self.export_build_script),
             MenuSeparator(),
@@ -156,15 +157,15 @@ class AmakeActionsManager(object):
 
     @staticmethod
     def print_make_help(window: FnExecuteWindow, action: Action):
-        tr_ = common.trfunc()
+        msgs = Messages()
         if window.is_function_executing():
             window.show_warning(
-                message=tr_("Please wait for the current execution to finish.")
+                message=msgs.MSG_WAIT_EXECUTION_DONE,
+                title=msgs.MSG_WARNING_DIALOG_TITLE,
             )
             return
         window.close_param_validation_win()
         window.show_output_tab()
-        window.print(tr_("Printing make help..."))
         make_bin = window.get_parameter_values().get(MAKE_OPT_MAKE_BIN_KEY, "make")
         cmd = [make_bin, "--help"]
         _run_cmd_simple(
@@ -173,15 +174,15 @@ class AmakeActionsManager(object):
 
     @staticmethod
     def test_make_command(window: FnExecuteWindow, action: Action):
-        tr_ = common.trfunc()
+        msgs = Messages()
         if window.is_function_executing():
             window.show_warning(
-                message=tr_("Please wait for the current execution to finish.")
+                message=msgs.MSG_WAIT_EXECUTION_DONE,
+                title=msgs.MSG_WARNING_DIALOG_TITLE,
             )
             return
         window.close_param_validation_win()
         window.show_output_tab()
-        window.print(tr_("Test make command..."))
         make_bin = window.get_parameter_values().get(MAKE_OPT_MAKE_BIN_KEY, "make")
         cmd = [make_bin, "--version"]
         _run_cmd_simple(
@@ -240,6 +241,7 @@ class AmakeActionsManager(object):
         return self.save_configurations(window)
 
     def generate_command_line(self, window: FnExecuteWindow, action: Action):
+        msgs = Messages()
         window.close_param_validation_win()
         ret = self.update_configurations(window)
         if not ret:
@@ -251,41 +253,43 @@ class AmakeActionsManager(object):
                 configurations=self._configurations,
                 processor_executor=self._processor_executor,
             )
-            window.print(f"Make Command:\n  {cmd.make_bin}")
+            window.print(msgs.MSG_MAKE_CMD.ljust(12), ":", cmd.to_command_string())
             window.print()
 
-            window.print(f"Make Target: {cmd.make_target}")
+            window.print(msgs.MSG_MAKE_TARGET.ljust(12), ":", cmd.make_target)
             window.print()
 
-            window.print(f"Make Options:")
+            window.print(msgs.MSG_MAKE_OPTIONS.ljust(12), ":")
             for opt in cmd.make_options:
                 if not opt:
                     continue
                 window.print(f"  {opt}")
             window.print()
 
-            window.print("Variables:")
+            window.print(msgs.MSG_VARIABLES.ljust(12), ":")
             for name, value in cmd.user_variables.items():
                 window.print(f"  {name} = {value}")
             window.print()
 
-            window.print(f"Override Variables: {cmd.override_variables}")
+            window.print(
+                msgs.MSG_OVERRIDE_VARIABLES.ljust(12), ":", str(cmd.override_variables)
+            )
             window.print()
 
-            window.print("Command line:")
+            window.print(msgs.MSG_CMD_LINE.ljust(12), ":")
             window.print(cmd.to_command_string())
             window.print()
 
             window.print("=" * 80)
         except Exception as e:
 
-            window.print(f"Failed to generate command line: {e}")
+            window.print(msgs.MSG_FAILED_TO_GENERATE_CMD, ":", str(e))
             window.print()
             window.print("=" * 80)
             window.show_error(message=str(e))
 
     def export_build_script(self, window: FnExecuteWindow, action: Action):
-        tr_ = common.trfunc()
+        msgs = Messages()
         window.close_param_validation_win()
         ret = self.update_configurations(window)
         if not ret:
@@ -298,19 +302,22 @@ class AmakeActionsManager(object):
             )
             script = cmd.to_command_string()
             filepath = window.select_save_file(
-                title=tr_("Export Build Script"),
+                title=msgs.MSG_GENERATE_SCRIPT_DIALOG_TITLE,
                 initialfile="build.sh",
-                filetypes=[(tr_("Shell Script"), "*.sh"), (tr_("All Files"), "*.*")],
+                filetypes=[
+                    (msgs.MSG_SHELL_SCRIPT_FILE_TYPE, "*.sh"),
+                    (msgs.MSG_ALL_FILE_TYPE, "*.*"),
+                ],
             )
             if not filepath:
                 return
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(script)
-            msg = tr_("Build script exported to ") + filepath
+            msg = msgs.MSG_BUILD_SCRIPT_GENERATED + filepath
             window.print(msg)
             window.show_information(msg)
         except Exception as e:
-            msg = tr_("Failed to export build script: ") + str(e)
+            msg = msgs.MSG_FAILED_TO_GENERATE_SCRIPT + str(e)
             window.print(msg)
             window.show_error(msg)
             traceback.print_exc()
