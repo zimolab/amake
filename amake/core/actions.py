@@ -10,6 +10,7 @@ from pyguiadapterlite import FnExecuteWindow, Action, Menu, Separator as MenuSep
 from .cmd import AmakeCommand
 from .widgets import AmakeWidgets
 from .. import common
+from .._messages import Messages
 from ..appconfig import AmakeAppConfig
 from ..makeoptions import MAKE_OPT_MAKE_BIN_KEY, MakeOptions
 from ..processor import ProcessorExecutor
@@ -27,6 +28,7 @@ def _run_cmd_simple(
     print_return_code=True,
     show_error=True,
 ):
+    msgs = Messages()
     if print_cmdline:
         window.print()
         window.print(shlex.join(cmd))
@@ -40,10 +42,10 @@ def _run_cmd_simple(
         if print_output:
             window.print(output)
         if print_return_code:
-            window.print(f"exit with code: {result.returncode}")
+            window.print(msgs.MSG_EXIT_CODE + str(result.returncode))
         window.print("=" * 80)
     except BaseException as e:
-        window.print(f"Failed to run command: {e}")
+        window.print(msgs.MSG_COMMAND_FAILED + str(e))
         window.print("=" * 80)
         if show_error:
             window.show_error(message=str(e))
@@ -70,29 +72,30 @@ class AmakeActionsManager(object):
 
     def create(self) -> List[Menu]:
         tr_ = common.trfunc()
+        msgs = Messages()
         if self._menus:
             return self._menus
         file_actions = [
-            Action(tr_("Save Configurations"), self.on_save_configurations),
-            Action(tr_("Load Configurations"), self.load_configurations),
+            Action(msgs.MSG_ACTION_SAVE_CONFIGS, self.on_save_configurations),
+            Action(msgs.MSG_ACTION_LOAD_CONFIGS, self.load_configurations),
             MenuSeparator(),
-            Action(tr_("Quit"), self.quit),
+            Action(msgs.MSG_ACTION_QUIT, self.quit),
         ]
-        menu_file = Menu(title=tr_("File"), actions=file_actions)
+        menu_file = Menu(title=msgs.MSG_MENU_FILE, actions=file_actions)
 
         tools_actions = [
-            Action(tr_("Test Make Command"), self.test_make_command),
-            Action(tr_("Print Make Help"), self.print_make_help),
-            Action(tr_("Generate Command Line"), self.generate_command_line),
-            Action(tr_("Export Build Script"), self.export_build_script),
+            Action(msgs.MSG_ACTION_TEST_MAKE_CMD, self.test_make_command),
+            Action(msgs.MSG_ACTION_PRINT_MAKE_HELP, self.print_make_help),
+            Action(msgs.MSG_ACTION_GENERATE_CMD, self.generate_command_line),
+            Action(msgs.MSG_ACTION_GENERATE_BUILD_SCRIPT, self.export_build_script),
         ]
-        menu_tools = Menu(title=tr_("Tools"), actions=tools_actions)
+        menu_tools = Menu(title=msgs.MSG_MENU_TOOLS, actions=tools_actions)
 
         menu_view = Menu(
-            title=tr_("View"),
+            title=msgs.MSG_MENU_VIEW,
             actions=[
                 Action(
-                    tr_("Always on Top"),
+                    msgs.MSG_ACTION_ALWAYS_ON_TOP,
                     self.set_always_on_top,
                     checkable=True,
                     initial_checked=self._app_config.always_on_top,
@@ -101,10 +104,10 @@ class AmakeActionsManager(object):
         )
 
         menu_help = Menu(
-            title=tr_("Help"),
+            title=msgs.MSG_MENU_HELP,
             actions=[
-                Action(tr_("About"), self.show_about_dialog),
-                Action(tr_("License"), self.show_license_dialog),
+                Action(msgs.MSG_ACTION_ABOUT, self.show_about_dialog),
+                Action(msgs.MSG_ACTION_LICENSE, self.show_license_dialog),
             ],
         )
 
@@ -112,7 +115,7 @@ class AmakeActionsManager(object):
             menu_help.actions.append(MenuSeparator())
             menu_help.actions.append(
                 Action(
-                    tr_("Goto Schema Website"),
+                    msgs.MSG_ACTION_SCHEMA_WEBSITE,
                     on_triggered=lambda w, a: self._open_url(self._schema.website),
                 )
             )
@@ -121,13 +124,19 @@ class AmakeActionsManager(object):
         return self._menus
 
     def on_save_configurations(self, window: FnExecuteWindow, action: Action):
-        tr_ = common.trfunc()
+        msgs = Messages()
         window.close_param_validation_win()
         ret = self.update_and_save_configurations(window)
         if ret:
-            window.show_information(message=tr_("Configurations saved successfully!"))
+            window.show_information(
+                message=msgs.MSG_CONFIGS_SAVE_SUCCESS,
+                title=msgs.MSG_SUCCESS_DIALOG_TITLE,
+            )
         else:
-            window.show_error(message=tr_("Failed to save configurations!"))
+            window.show_error(
+                message=msgs.MSG_CONFIGS_SAVE_FAILURE,
+                title=msgs.MSG_FAILURE_DIALOG_TITLE,
+            )
 
     @staticmethod
     def print_make_help(window: FnExecuteWindow, action: Action):

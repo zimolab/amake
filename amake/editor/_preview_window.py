@@ -5,8 +5,9 @@ from typing import Optional
 from pyguiadapterlite import FnExecuteWindow, FnExecuteWindowConfig
 from pyguiadapterlite.core.fn import FnInfo
 
-from amake.schema import AmakeSchema
-from amake.utils import move_to_desktop_center
+from .._messages import Messages
+from ..schema import AmakeSchema
+from ..utils import move_to_desktop_center
 
 
 def _placeholder_function(**kwargs):
@@ -22,11 +23,14 @@ class PreviewWindow(FnExecuteWindow):
     def __init__(
         self, parent, schema: AmakeSchema, config: Optional[PreviewWindowConfig] = None
     ):
-
-        config = config or PreviewWindowConfig()
-
-        config = dataclasses.replace(
-            config,
+        msg = Messages()
+        config = config or PreviewWindowConfig(
+            default_parameter_group_name=msg.MSG_DEFAULT_PARAM_GROUP_NAME,
+            document_tab_title=msg.MSG_DOCUMENT_TAB_TITLE,
+            output_tab_title=msg.MSG_OUTPUT_TAB_TITLE,
+            execute_button_text=msg.MSG_EXE_BTN_TEXT,
+            cancel_button_text=msg.MSG_CANCEL_BTN_TEXT,
+            clear_button_text=msg.MSG_CLEAR_BTN_TEXT,
             print_function_result=False,
             show_function_result=False,
         )

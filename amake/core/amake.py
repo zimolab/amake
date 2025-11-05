@@ -1,3 +1,4 @@
+import builtins
 import subprocess
 import time
 import traceback
@@ -11,11 +12,11 @@ from pyguiadapterlite import (
     is_function_cancelled,
 )
 
+from .actions import AmakeActionsManager
 from .cmd import AmakeCommand
 from .eventhandler import AmakeEventHandler, EventType
-from .actions import AmakeActionsManager
 from .widgets import AmakeWidgets
-from .. import common, processors
+from .. import processors
 from .._messages import Messages
 from ..appconfig import AmakeAppConfig
 from ..makeoptions import MakeOptions
@@ -65,12 +66,13 @@ class Amake(object):
 
     @staticmethod
     def _on_run(command: AmakeCommand):
-        tr_ = common.trfunc()
+
+        msgs = Messages()
 
         def _debug_print(msg):
             uprint(f"\033[33m{msg}\033[0m")
 
-        _debug_print(tr_("Running command: ") + command.to_command_string())
+        _debug_print(msgs.MSG_RUNNING_COMMAND + command.to_command_string())
         _hinted = False
 
         process = subprocess.Popen(
@@ -90,13 +92,13 @@ class Amake(object):
             time.sleep(0.01)
             if is_function_cancelled():
                 if not _hinted:
-                    _debug_print(tr_("User ask to cancel current execution"))
-                    _debug_print(tr_("Terminating process..."))
+                    _debug_print(msgs.MSG_ASK_CANCEL_EXECUTION)
+                    _debug_print(msgs.MSG_TERMINATING_PROCESS)
                     _hinted = True
                 process.terminate()
                 # process.kill()
-        _debug_print(tr_("Process finished!"))
-        _debug_print(tr_("Exit Code: ") + str(process.returncode))
+        _debug_print(msgs.MSG_PROCESS_FINISHED)
+        _debug_print(msgs.MSG_EXIT_CODE + str(process.returncode))
 
     def after_window_create(self, window: FnExecuteWindow):
         self._widgets.create(window)
@@ -108,11 +110,12 @@ class Amake(object):
         self._update_ui(window, self._configurations)
 
     def before_window_close(self, window: FnExecuteWindow) -> bool:
-        tr_ = common.trfunc()
+        msgs = Messages()
+
         window.close_param_validation_win()
         ret = window.ask_yes_no_cancel(
-            message=tr_("Do you want to save configurations before quitting?"),
-            title=tr_("Quit"),
+            message=msgs.MSG_QUIT_CONFIRMATION,
+            title=msgs.MSG_QUIT_DIALOG_TITLE,
         )
         if ret is None:
             return False
@@ -149,11 +152,11 @@ class Amake(object):
     def after_execute(
         self, window: FnExecuteWindow, result: Any, exception: Optional[Exception]
     ):
-        tr_ = common.trfunc()
+        msgs = Messages()
         end_execute_time = time.time_ns()
         window.print("=" * 80)
         window.print(
-            tr_("Execution Time: ")
+            msgs.MSG_EXECUTION_TIME
             + f"{(end_execute_time - self._execute_start_time)/1e9} s"
         )
         window.print("=" * 80)
@@ -178,7 +181,7 @@ class Amake(object):
 
         msg = Messages()
 
-        title = msg.MSG_APP_NAME
+        title = getattr(builtins, "_amake_app_name", "amake")
         if self._configurations.filepath:
             title += f" - {self._configurations.filepath}"
 
@@ -193,8 +196,8 @@ class Amake(object):
             window_config=FnExecuteWindowConfig(
                 title=title,
                 execute_button_text=msg.MSG_EXE_BTN_TEXT,
-                cancel_button_text=msg.MSG_CANCEL_BTN_NAME,
-                clear_button_text=msg.MSG_CLEAR_BTN_NAME,
+                cancel_button_text=msg.MSG_CANCEL_BTN_TEXT,
+                clear_button_text=msg.MSG_CLEAR_BTN_TEXT,
                 clear_checkbox_text=msg.MSG_CLEAR_CHECKBOX_TEXT,
                 after_window_create_callback=self._event_handler.after_window_create,
                 before_window_close_callback=self._event_handler.before_window_close,
