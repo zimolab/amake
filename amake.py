@@ -194,6 +194,8 @@ def _setup_env():
     global _app_config
     # Set environment variables
     _debug(f"Setting environment variables...")
+    # MAKE SURE SETTING ENVIRONMENT VARIABLES BEFORE IMPORTING PYGUIADAPTERLITE AND ANY SUB PACKAGES OR MODULES OF IT
+    # OTHERWISE I18N WON'T WORK PROPERLY
     os.environ["PYGUIADAPTERLITE_LOGGING_MESSAGE"] = "0"
     os.environ["PYGUIADAPTERLITE_LOCALE"] = _app_config.locale
     import pyguiadapterlite
