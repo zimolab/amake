@@ -1,4 +1,5 @@
 import builtins
+import os
 import shlex
 import subprocess
 import traceback
@@ -6,10 +7,12 @@ import webbrowser
 from typing import List, Optional, Any, Callable
 
 from pyguiadapterlite import FnExecuteWindow, Action, Menu, Separator as MenuSeparator
+from pyguiadapterlite.components.textview import SimpleTextViewer
 
 from .cmd import AmakeCommand
 from .widgets import AmakeWidgets
 from .. import common
+from .._assets import assets_dir
 from .._messages import Messages
 from ..appconfig import AmakeAppConfig
 from ..makeoptions import MAKE_OPT_MAKE_BIN_KEY, MakeOptions
@@ -18,6 +21,7 @@ from ..schema import AmakeSchema, AmakeConfigurations
 
 AMAKE_APP_NAME = getattr(builtins, "_amake_app_name", "amake")
 AMAKE_APP_VERSION = getattr(builtins, "_amake_app_version", "0.0.0")
+AMAKE_LICENSE_FILE = assets_dir("LICENSE")
 
 ACTION_ID_EDIT_APP_CONFIGS = "edit_app_configs"
 ACTION_ID_RESET_APP_CONFIGS = "reset_app_configs"
@@ -329,7 +333,22 @@ class AmakeActionsManager(object):
         pass
 
     def show_license_dialog(self, window: FnExecuteWindow, action: Action):
-        pass
+        msgs = Messages()
+        print(AMAKE_LICENSE_FILE)
+        if not AMAKE_LICENSE_FILE or not os.path.isfile(AMAKE_LICENSE_FILE):
+            window.show_error(
+                message=msgs.MSG_NO_LICENSE_FILE, title=msgs.MSG_ERROR_DIALOG_TITLE
+            )
+            return
+        with open(AMAKE_LICENSE_FILE, "r", encoding="utf-8") as f:
+            text = f.read()
+        viewer = SimpleTextViewer(
+            title=msgs.MSG_LICENSE_VIEWER_TITLE,
+            width=800,
+            height=600,
+        )
+        viewer.set_text(text)
+        viewer.show_modal()
 
     @staticmethod
     def _open_url(url: str):

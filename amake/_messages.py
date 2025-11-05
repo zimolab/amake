@@ -73,6 +73,10 @@ class _Messages:
         self.MSG_FAILED_TO_GENERATE_SCRIPT = tr_(
             "Failed to generate build script because of the following error: "
         )
+        self.MSG_NO_LICENSE_FILE = tr_(
+            "This program is under the MIT license(license file not found)!"
+        )
+        self.MSG_LICENSE_VIEWER_TITLE = tr_("License")
 
 
 _MESSAGES: Optional[_Messages] = None
