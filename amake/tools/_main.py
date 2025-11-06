@@ -23,13 +23,13 @@ def amake_main(
 
     from ..schema import AmakeSchema, AmakeConfigurations
 
-    schema_file_tmp = schema_file
+    schema_file_tmp = schema_file or ""
     schema_file = get_schema_file(schema_file)
     if not schema_file:
         _error(f"Schema file not found: {schema_file_tmp}")
         print(f"Schema file not found: {schema_file_tmp}")
         show_error_message(
-            f"Schema file '{schema_file_tmp}' not found! You can create a new schema file by running 'amake init' command."
+            f"Schema file not found! You can run 'amake init' to create a new schema."
         )
         return -1
 
@@ -38,7 +38,7 @@ def amake_main(
     except Exception as e:
         _error(f"Failed to load schema file: {schema_file} : {e}")
         print(f"Failed to load schema file: {schema_file} : {e}")
-        show_error_message(f"Failed to load schema file: {schema_file} : {e}")
+        show_error_message(f"Failed to load: {schema_file} : {e}")
         return -1
 
     config_file_tmp = get_config_file(config_file)

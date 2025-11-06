@@ -176,7 +176,9 @@ def _load_app_config():
         app_config = AmakeAppConfig.default()
         _debug(f"Creating new app config file: {app_config_path.as_posix()}")
         app_config_path.parent.mkdir(parents=True, exist_ok=True)
-        app_config.save(app_config_path.as_posix())
+        app_config.save(
+            app_config_path.as_posix(), encoding="utf-8", ensure_ascii=False, indent=2
+        )
         return app_config
     try:
         app_config = AmakeAppConfig.load(app_config_path.as_posix())
@@ -186,7 +188,9 @@ def _load_app_config():
             f"Failed to load app config from file: {app_config_path.as_posix()}: {e}"
         )
         app_config = AmakeAppConfig.default()
-        app_config.save(app_config_path.as_posix())
+        app_config.save(
+            app_config_path.as_posix(), encoding="utf-8", ensure_ascii=False, indent=2
+        )
         return app_config
 
 

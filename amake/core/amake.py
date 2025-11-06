@@ -183,7 +183,7 @@ class Amake(object):
 
     def update_and_save_app_config(self, window: FnExecuteWindow):
         self.update_app_config(window)
-        self._app_config.save()
+        self._app_config.save(encoding="utf-8", indent=2, ensure_ascii=False)
 
     def run(self):
         parameter_configs = {
