@@ -175,7 +175,7 @@ def _load_app_config():
         _debug(f"App config file not found")
         app_config = AmakeAppConfig.default()
         _debug(f"Creating new app config file: {app_config_path.as_posix()}")
-        app_config_path.mkdir(parents=True, exist_ok=True)
+        app_config_path.parent.mkdir(parents=True, exist_ok=True)
         app_config.save(app_config_path.as_posix())
         return app_config
     try:
