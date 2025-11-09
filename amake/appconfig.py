@@ -3,6 +3,7 @@ import dataclasses
 from typing import Dict, Any, Callable
 
 from .common import Serializable
+from . import i18n
 
 
 @dataclasses.dataclass
@@ -15,9 +16,7 @@ class AmakeAppConfig(Serializable):
         self._i18n = None
 
     def setup_i18n(self, locale_dir):
-        from pyguiadapterlite.i18n import I18N
-
-        self._i18n = I18N(domain="amake", localedir=locale_dir, locale_code=self.locale)
+        self._i18n = i18n.create(localedir=locale_dir, locale_code=self.locale)
         # 把当前_i18n的翻译函数注入到全局空间
         # 之后，可以使用common.trfunc()/common.ntrfunc()来获取到下面两个翻译函数
         setattr(builtins, "__tr__", self.gettext)

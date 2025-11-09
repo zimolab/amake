@@ -243,11 +243,9 @@ def _initialize_locale():
     if not os.listdir(app_locale_dir.as_posix()):
         _debug(f"No locale files found in {app_locale_dir.as_posix()}")
         _debug(f"Copying default locale files to {app_locale_dir.as_posix()}")
+        from amake import assets
 
-        from amake import _assets
-
-        locale_dir = _assets.locales_dir()
-        shutil.copytree(locale_dir, app_locale_dir, dirs_exist_ok=True)
+        assets.export_builtin_locales(app_locale_dir.as_posix(), overwrite=True)
 
     _debug(f"Setting app locale: {_app_config.locale}")
     _app_config.setup_i18n(app_locale_dir.as_posix())

@@ -1,6 +1,6 @@
-import os
 import shlex
 import subprocess
+import sys
 import traceback
 import webbrowser
 from typing import List, Optional, Any, Callable
@@ -11,8 +11,7 @@ from pyguiadapterlite.components.textview import SimpleTextViewer
 from ._aboutdlg import AboutDialog
 from .cmd import AmakeCommand
 from .widgets import AmakeWidgets
-from .. import common
-from .._assets import assets_dir
+from .. import common, assets
 from .._messages import Messages
 from ..appconfig import AmakeAppConfig
 from ..makeoptions import MAKE_OPT_MAKE_BIN_KEY, MakeOptions
@@ -20,11 +19,10 @@ from ..processor import ProcessorExecutor
 from ..schema import AmakeSchema, AmakeConfigurations
 from ..utils import move_to_center_of
 
-
-AMAKE_LICENSE_FILE = assets_dir("LICENSE")
-
 ACTION_ID_EDIT_APP_CONFIGS = "edit_app_configs"
 ACTION_ID_RESET_APP_CONFIGS = "reset_app_configs"
+
+AMAKE_LICENSE_FILE = "LICENSE"
 
 
 def _run_cmd_simple(
@@ -335,13 +333,15 @@ class AmakeActionsManager(object):
     @staticmethod
     def show_license_dialog(window: FnExecuteWindow, action: Action):
         msgs = Messages()
-        if not AMAKE_LICENSE_FILE or not os.path.isfile(AMAKE_LICENSE_FILE):
+        try:
+            text = assets.read_asset_text(AMAKE_LICENSE_FILE)
+        except Exception as e:
+            print(e, file=sys.stderr)
             window.show_error(
                 message=msgs.MSG_NO_LICENSE_FILE, title=msgs.MSG_ERROR_DIALOG_TITLE
             )
             return
-        with open(AMAKE_LICENSE_FILE, "r", encoding="utf-8") as f:
-            text = f.read()
+
         viewer = SimpleTextViewer(
             title=msgs.MSG_LICENSE_VIEWER_TITLE,
             width=800,
