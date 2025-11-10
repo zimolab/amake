@@ -84,6 +84,9 @@ class _Messages:
             f"Open the following website?\n\n"
         )
         self.MSG_CONFIGS_LOAD_FAILURE = tr_("Failed to load configurations!")
+        self.MSG_LOAD_CONFIGS_DIALOG_TITLE = tr_("Load Configurations")
+        self.MSG_CONFIGS_FILE_FILTER = tr_("Configurations Files")
+        self.MSG_JSON_FILE_FILTER = tr_("JSON Files")
 
 
 _messages: Optional[_Messages] = None
