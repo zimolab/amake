@@ -27,8 +27,11 @@ class Serializable(object):
         self._filepath = file_path
 
     def serialize(self, **kwargs) -> Union[str, bytes]:
-        obj = dataclasses.asdict(self)
+        obj = self.as_dict()
         return json.dumps(obj, **kwargs)
+
+    def as_dict(self) -> dict:
+        return dataclasses.asdict(self)
 
     @property
     def filepath(self) -> Optional[str]:
