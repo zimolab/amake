@@ -12,7 +12,7 @@ from ._aboutdlg import AboutDialog
 from .cmd import AmakeCommand
 from .widgets import AmakeWidgets
 from .. import common, assets
-from .._messages import Messages
+from .._messages import messages
 from ..appconfig import AmakeAppConfig
 from ..makeoptions import MAKE_OPT_MAKE_BIN_KEY, MakeOptions
 from ..processor import ProcessorExecutor
@@ -33,7 +33,7 @@ def _run_cmd_simple(
     print_return_code=True,
     show_error=True,
 ):
-    msgs = Messages()
+    msgs = messages()
     if print_cmdline:
         window.print()
         window.print(shlex.join(cmd))
@@ -79,7 +79,7 @@ class AmakeActionsManager(object):
 
     def create(self) -> List[Menu]:
         tr_ = common.trfunc()
-        msgs = Messages()
+        msgs = messages()
         if self._menus:
             return self._menus
         file_actions = [
@@ -135,7 +135,7 @@ class AmakeActionsManager(object):
             menu_help.actions.append(
                 Action(
                     msgs.MSG_ACTION_SCHEMA_WEBSITE,
-                    on_triggered=lambda w, a: self._open_url(self._schema.website),
+                    on_triggered=self.goto_schema_website,
                 )
             )
 
@@ -143,7 +143,7 @@ class AmakeActionsManager(object):
         return self._menus
 
     def on_save_configurations(self, window: FnExecuteWindow, action: Action):
-        msgs = Messages()
+        msgs = messages()
         window.close_param_validation_win()
         ret = self.update_and_save_configurations(window)
         if ret:
@@ -159,7 +159,7 @@ class AmakeActionsManager(object):
 
     @staticmethod
     def print_make_help(window: FnExecuteWindow, action: Action):
-        msgs = Messages()
+        msgs = messages()
         if window.is_function_executing():
             window.show_warning(
                 message=msgs.MSG_WAIT_EXECUTION_DONE,
@@ -176,7 +176,7 @@ class AmakeActionsManager(object):
 
     @staticmethod
     def test_make_command(window: FnExecuteWindow, action: Action):
-        msgs = Messages()
+        msgs = messages()
         if window.is_function_executing():
             window.show_warning(
                 message=msgs.MSG_WAIT_EXECUTION_DONE,
@@ -243,7 +243,7 @@ class AmakeActionsManager(object):
         return self.save_configurations(window)
 
     def generate_command_line(self, window: FnExecuteWindow, action: Action):
-        msgs = Messages()
+        msgs = messages()
         window.close_param_validation_win()
         ret = self.update_configurations(window)
         if not ret:
@@ -291,7 +291,7 @@ class AmakeActionsManager(object):
             window.show_error(message=str(e))
 
     def export_build_script(self, window: FnExecuteWindow, action: Action):
-        msgs = Messages()
+        msgs = messages()
         window.close_param_validation_win()
         ret = self.update_configurations(window)
         if not ret:
@@ -324,15 +324,19 @@ class AmakeActionsManager(object):
             window.show_error(msg)
             traceback.print_exc()
 
+    # noinspection PyMethodMayBeStatic
     def load_configurations(self, window: FnExecuteWindow, action: Action):
-        pass
+        msgs = messages()
+        window.set_parameter_values()
 
+    # noinspection PyMethodMayBeStatic
     def show_about_dialog(self, window: FnExecuteWindow, action: Action):
-        window.show_custom_dialog(AboutDialog, title="About")
+        msgs = messages()
+        window.show_custom_dialog(AboutDialog, title=msgs.MSG_ABOUT_DIALOG_TITLE)
 
     @staticmethod
     def show_license_dialog(window: FnExecuteWindow, action: Action):
-        msgs = Messages()
+        msgs = messages()
         try:
             text = assets.read_asset_text(AMAKE_LICENSE_FILE)
         except Exception as e:
@@ -343,17 +347,24 @@ class AmakeActionsManager(object):
             return
 
         viewer = SimpleTextViewer(
-            title=msgs.MSG_LICENSE_VIEWER_TITLE,
-            width=800,
-            height=600,
+            title=msgs.MSG_LICENSE_DIALOG_TITLE, width=825, height=600
         )
         move_to_center_of(viewer, window.parent)
         viewer.set_text(text)
         viewer.show_modal()
 
-    @staticmethod
-    def _open_url(url: str):
-        webbrowser.open_new(url)
+    def goto_schema_website(self, window: FnExecuteWindow, action: Action):
+        url = (self._schema.website or "").strip()
+        msgs = messages()
+        if not url:
+            window.show_warning("Not Provided!")
+            return
+        ans = window.ask_yes_no(
+            message=msgs.MSG_OPEN_SCHEMA_WEBSITE_WARNING + url,
+        )
+        if not ans:
+            return
+        webbrowser.open(url)
 
     def _edit_app_configs(self, window: FnExecuteWindow, action: Action):
         from ..tools import appconfig_edit
@@ -364,7 +375,7 @@ class AmakeActionsManager(object):
     def _reset_app_configs(self, window: FnExecuteWindow, action: Action):
         from ..tools import appconfig_reset
 
-        msgs = Messages()
+        msgs = messages()
         if not window.ask_yes_no(
             message=msgs.MSG_ASK_RESET_APP_CONFIGS, title=msgs.MSG_CONFIRM_DIALOG_TITLE
         ):
