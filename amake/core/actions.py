@@ -8,7 +8,7 @@ from typing import List, Optional, Any, Callable
 from pyguiadapterlite import FnExecuteWindow, Action, Menu, Separator as MenuSeparator
 from pyguiadapterlite.components.textview import SimpleTextViewer
 
-from ._aboutdlg import AboutDialog
+from ._aboutdlg import AboutDialog, AboutSchemaDialog
 from .cmd import AmakeCommand
 from .widgets import AmakeWidgets
 from .. import common, assets
@@ -127,11 +127,15 @@ class AmakeActionsManager(object):
             actions=[
                 Action(msgs.MSG_ACTION_ABOUT, self.show_about_dialog),
                 Action(msgs.MSG_ACTION_LICENSE, self.show_license_dialog),
+                MenuSeparator(),
+                Action(
+                    msgs.MSG_ACTION_ABOUT_SCHEMA,
+                    on_triggered=self.show_about_schema_dialog,
+                ),
             ],
         )
 
         if self._schema.website:
-            menu_help.actions.append(MenuSeparator())
             menu_help.actions.append(
                 Action(
                     msgs.MSG_ACTION_SCHEMA_WEBSITE,
@@ -363,6 +367,12 @@ class AmakeActionsManager(object):
     def show_about_dialog(self, window: FnExecuteWindow, action: Action):
         msgs = messages()
         window.show_custom_dialog(AboutDialog, title=msgs.MSG_ABOUT_DIALOG_TITLE)
+
+    def show_about_schema_dialog(self, window: FnExecuteWindow, action: Action):
+        msgs = messages()
+        window.show_custom_dialog(
+            AboutSchemaDialog, title=msgs.MSG_ABOUT_SCHEMA_TITLE, schema=self._schema
+        )
 
     @staticmethod
     def show_license_dialog(window: FnExecuteWindow, action: Action):
