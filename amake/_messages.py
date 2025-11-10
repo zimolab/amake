@@ -57,6 +57,14 @@ class _Messages:
         self.MSG_APP_CONFIGS_CHANGE_INFO = tr_(
             "The modifications to the app config file will be applied after restarting the application."
         )
+        self.MSG_ACTION_ABOUT_SCHEMA = tr_("About Schema")
+        self.MSG_ABOUT_SCHEMA_TITLE = tr_("About Schema")
+        self.MSG_SCHEMA_AUTHOR = tr_("Author")
+        self.MSG_SCHEMA_VERSION = tr_("Version")
+        self.MSG_SCHEMA_WEBSITE = tr_("Website")
+        self.MSG_SCHEMA_DESCRIPTION = tr_("Description")
+        self.MSG_SCHEMA_CREATED_AT = tr_("Created At")
+
         self.MSG_WAIT_EXECUTION_DONE = tr_("Please wait for execution to finish...")
         self.MSG_MAKE_CMD = tr_("Make Command")
         self.MSG_MAKE_TARGET = tr_("Make Target")
