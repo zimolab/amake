@@ -35,6 +35,8 @@ class _Messages:
         self.MSG_CONFIRM_DIALOG_TITLE = tr_("Confirmation")
         self.MSG_WARNING_DIALOG_TITLE = tr_("Warning")
         self.MSG_ERROR_DIALOG_TITLE = tr_("Error")
+        self.MSG_ABOUT_DIALOG_TITLE = tr_("About")
+        self.MSG_LICENSE_DIALOG_TITLE = tr_("License")
 
         self.MSG_ACTION_SAVE_CONFIGS = tr_("Save Configurations")
         self.MSG_ACTION_LOAD_CONFIGS = tr_("Load Configurations")
@@ -76,14 +78,18 @@ class _Messages:
         self.MSG_NO_LICENSE_FILE = tr_(
             "This program is under the MIT license(license file not found)!"
         )
-        self.MSG_LICENSE_VIEWER_TITLE = tr_("License")
+        self.MSG_OPEN_SCHEMA_WEBSITE_WARNING = tr_(
+            "You are about to open an external website provided by the schema author.\n\n"
+            "Caution: We cannot guarantee the safety of external content. Proceed at your own risk. "
+            f"Open the following website?\n\n"
+        )
 
 
-_MESSAGES: Optional[_Messages] = None
+_messages: Optional[_Messages] = None
 
 
-def Messages() -> _Messages:
-    global _MESSAGES
-    if _MESSAGES is None:
-        _MESSAGES = _Messages()
-    return _MESSAGES
+def messages() -> _Messages:
+    global _messages
+    if _messages is None:
+        _messages = _Messages()
+    return _messages
