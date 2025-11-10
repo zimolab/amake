@@ -112,14 +112,11 @@ Options:
 
 import builtins
 import os
-import shutil
 import sys
+from pathlib import Path
 from typing import Optional
 
-
 from amake.thirdparty import platformdirs
-from pathlib import Path
-
 
 __APP_NAME__ = "amake"
 __APP_VERSION__ = "0.1.0"
