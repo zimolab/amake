@@ -84,7 +84,7 @@ class AmakeActionsManager(object):
             return self._menus
         file_actions = [
             Action(msgs.MSG_ACTION_SAVE_CONFIGS, self.on_save_configurations),
-            Action(msgs.MSG_ACTION_LOAD_CONFIGS, self.load_configurations),
+            Action(msgs.MSG_ACTION_LOAD_CONFIGS, self.on_load_configurations),
             MenuSeparator(),
             Action(msgs.MSG_ACTION_QUIT, self.quit),
         ]
@@ -242,6 +242,18 @@ class AmakeActionsManager(object):
             return False
         return self.save_configurations(window)
 
+    def update_ui_from_configurations(
+        self, window: FnExecuteWindow, configrations: AmakeConfigurations
+    ):
+        window.set_parameter_values(
+            {
+                **configrations.options,
+                **configrations.variables,
+            }
+        )
+        self._widgets.set_current_target(configrations.target)
+        self.update_configurations(window)
+
     def generate_command_line(self, window: FnExecuteWindow, action: Action):
         msgs = messages()
         window.close_param_validation_win()
@@ -325,9 +337,20 @@ class AmakeActionsManager(object):
             traceback.print_exc()
 
     # noinspection PyMethodMayBeStatic
-    def load_configurations(self, window: FnExecuteWindow, action: Action):
+    def on_load_configurations(self, window: FnExecuteWindow, action: Action):
         msgs = messages()
-        window.set_parameter_values()
+        try:
+            filepath = window.select_open_file()
+            if not filepath:
+                return
+            new_configs = AmakeConfigurations.load(filepath)
+            self.update_ui_from_configurations(window, new_configs)
+        except Exception as e:
+            window.show_error(
+                message=msgs.MSG_CONFIGS_LOAD_FAILURE,
+                title=msgs.MSG_FAILURE_DIALOG_TITLE,
+                detail=str(e),
+            )
 
     # noinspection PyMethodMayBeStatic
     def show_about_dialog(self, window: FnExecuteWindow, action: Action):
