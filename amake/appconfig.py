@@ -11,6 +11,8 @@ class AmakeAppConfig(Serializable):
     locale: str = "auto"
     clear_output_on_run: bool = True
     always_on_top: bool = False
+    hdpi_mode: bool = False
+    hdpi_factor: int = 80
 
     def __post_init__(self):
         self._i18n = None
