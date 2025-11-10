@@ -197,7 +197,14 @@ class Amake(object):
         if self._configurations.filepath:
             title += f" - {self._configurations.filepath}"
 
-        adapter = GUIAdapter()
+        hdpi_factor = self._app_config.hdpi_factor
+        if hdpi_factor <= 0:
+            hdpi_factor = 100
+
+        adapter = GUIAdapter(
+            hdpi_mode=self._app_config.hdpi_mode,
+            scale_factor_divisor=hdpi_factor,
+        )
         self._gui_adapter = adapter
         adapter.add_universal(
             self._on_run,
