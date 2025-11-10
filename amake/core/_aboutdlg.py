@@ -120,3 +120,6 @@ class AboutDialog(BaseSimpleDialog):
     def on_create_content_area(self, dialog: Toplevel):
         self._content_area = AboutFrame(dialog)
         self._content_area.pack(fill="both", expand=True)
+
+    def on_ok(self):
+        self.on_cancel()
