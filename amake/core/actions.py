@@ -340,7 +340,14 @@ class AmakeActionsManager(object):
     def on_load_configurations(self, window: FnExecuteWindow, action: Action):
         msgs = messages()
         try:
-            filepath = window.select_open_file()
+            filepath = window.select_open_file(
+                title=msgs.MSG_LOAD_CONFIGS_DIALOG_TITLE,
+                filetypes=[
+                    (msgs.MSG_CONFIGS_FILE_FILTER, "*.config.json"),
+                    (msgs.MSG_JSON_FILE_FILTER, "*.json"),
+                    (msgs.MSG_ALL_FILE_TYPE, "*.*"),
+                ],
+            )
             if not filepath:
                 return
             new_configs = AmakeConfigurations.load(filepath)
