@@ -83,6 +83,7 @@ class _Messages:
             "Caution: We cannot guarantee the safety of external content. Proceed at your own risk. "
             f"Open the following website?\n\n"
         )
+        self.MSG_CONFIGS_LOAD_FAILURE = tr_("Failed to load configurations!")
 
 
 _messages: Optional[_Messages] = None
