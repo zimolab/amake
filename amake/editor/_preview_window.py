@@ -5,7 +5,7 @@ from typing import Optional
 from pyguiadapterlite import FnExecuteWindow, FnExecuteWindowConfig
 from pyguiadapterlite.core.fn import FnInfo
 
-from .._messages import Messages
+from .._messages import messages
 from ..schema import AmakeSchema
 from ..utils import move_to_desktop_center
 
@@ -23,7 +23,7 @@ class PreviewWindow(FnExecuteWindow):
     def __init__(
         self, parent, schema: AmakeSchema, config: Optional[PreviewWindowConfig] = None
     ):
-        msg = Messages()
+        msg = messages()
         config = config or PreviewWindowConfig(
             default_parameter_group_name=msg.MSG_DEFAULT_PARAM_GROUP_NAME,
             document_tab_title=msg.MSG_DOCUMENT_TAB_TITLE,

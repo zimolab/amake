@@ -22,7 +22,7 @@ from .cmd import AmakeCommand
 from .eventhandler import AmakeEventHandler, EventType
 from .widgets import AmakeWidgets
 from .. import processors
-from .._messages import Messages
+from .._messages import messages
 from ..appconfig import AmakeAppConfig
 from ..makeoptions import MakeOptions
 from ..processor import ProcessorExecutor
@@ -79,7 +79,7 @@ class Amake(object):
     @staticmethod
     def _on_run(command: AmakeCommand):
 
-        msgs = Messages()
+        msgs = messages()
 
         def _debug_print(msg):
             uprint(f"\033[33m{msg}\033[0m")
@@ -121,7 +121,7 @@ class Amake(object):
         self._update_ui(window, self._configurations)
 
     def before_window_close(self, window: FnExecuteWindow) -> bool:
-        msgs = Messages()
+        msgs = messages()
 
         window.close_param_validation_win()
         ret = window.ask_yes_no_cancel(
@@ -164,7 +164,7 @@ class Amake(object):
     def after_execute(
         self, window: FnExecuteWindow, result: Any, exception: Optional[Exception]
     ):
-        msgs = Messages()
+        msgs = messages()
         end_execute_time = time.time_ns()
         window.print("=" * 80)
         window.print(
@@ -191,7 +191,7 @@ class Amake(object):
             **MakeOptions().parameter_configs,
         }
 
-        msg = Messages()
+        msg = messages()
 
         title = getattr(builtins, "_amake_app_name", "amake")
         if self._configurations.filepath:
@@ -226,7 +226,7 @@ class Amake(object):
         self._gui_adapter = None
 
     def handle_action_event(self, window: FnExecuteWindow, action: Action):
-        msgs = Messages()
+        msgs = messages()
         if action.data in [ACTION_ID_EDIT_APP_CONFIGS, ACTION_ID_RESET_APP_CONFIGS]:
             window.show_information(
                 message=msgs.MSG_APP_CONFIGS_CHANGE_INFO,
