@@ -119,11 +119,6 @@ class AmakeActionsManager(object):
                 on_triggered=self.show_appsettings_window,
                 data=ACTION_ID_EDIT_APPSETTINGS,
             ),
-            # Action(
-            #     msgs.MSG_RESET_APP_CONFIGS,
-            #     on_triggered=self._reset_app_configs,
-            #     data=ACTION_ID_RESET_APP_CONFIGS,
-            # ),
         ]
         menu_tools = Menu(title=self._msgs.MSG_MENU_TOOLS, actions=tools_actions)
 
@@ -434,14 +429,3 @@ class AmakeActionsManager(object):
             setting_fields=self._visible_fields,
             after_save_callback=partial(self._after_settings_window_confirmed, window),
         )
-
-    # def _reset_app_configs(self, window: FnExecuteWindow, action: Action):
-    #     from ..tools import appconfig_reset
-    #
-    #     msgs = messages()
-    #     if not window.ask_yes_no(
-    #         message=msgs.MSG_ASK_RESET_APP_CONFIGS, title=msgs.MSG_CONFIRM_DIALOG_TITLE
-    #     ):
-    #         return
-    #     appconfig_reset(self._appsettings, no_confirm=True)
-    #     self._action_handler(window, action)
