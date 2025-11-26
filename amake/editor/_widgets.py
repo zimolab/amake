@@ -3,12 +3,14 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Treeview
 from typing import Literal, Dict, Any, List, Optional, Callable, Union
 
-from amake import common
+from .._messages import messages
 
 
 class TextEdit(ScrolledText):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+
+        self._msgs = messages()
 
         self._context_menu = None
 
@@ -162,38 +164,47 @@ class TextEdit(ScrolledText):
 
     def create_default_menu(self):
         """创建右键菜单"""
-        tr_ = common.trfunc()
         self._context_menu = Menu(self, tearoff=0)
-        self._context_menu.add_command(label=tr_("Copy"), command=self.copy)
         self._context_menu.add_command(
-            label=tr_("Cut"), command=lambda e=None: self._on_ctrl_x(e)
+            label=self._msgs.MSG_TEXTEDIT_COPY_ACTION, command=self.copy
         )
         self._context_menu.add_command(
-            label=tr_("Paste"), command=lambda e=None: self._on_ctrl_v(e)
+            label=self._msgs.MSG_TEXTEDIT_CUT_ACTION,
+            command=lambda e=None: self._on_ctrl_x(e),
+        )
+        self._context_menu.add_command(
+            label=self._msgs.MSG_TEXTEDIT_PASTE_ACTION,
+            command=lambda e=None: self._on_ctrl_v(e),
         )
         self._context_menu.add_separator()
         self._context_menu.add_command(
-            label=tr_("Undo"), command=lambda e=None: self._on_ctrl_z(e)
+            label=self._msgs.MSG_TEXTEDIT_UNDO_ACTION,
+            command=lambda e=None: self._on_ctrl_z(e),
         )
         self._context_menu.add_command(
-            label=tr_("Redo"), command=lambda e=None: self._on_ctrl_y(e)
+            label=self._msgs.MSG_TEXTEDIT_REDO_ACTION,
+            command=lambda e=None: self._on_ctrl_y(e),
         )
 
         self._context_menu.add_separator()
 
-        self._context_menu.add_command(label=tr_("Select All"), command=self.select_all)
+        self._context_menu.add_command(
+            label=self._msgs.MSG_TEXTEDIT_SELECT_ALL_ACTION, command=self.select_all
+        )
 
         self._context_menu.add_separator()
 
         self._context_menu.add_command(
-            label=tr_("Scroll to Top"), command=self.scroll_to_top
+            label=self._msgs.MSG_TEXTEDIT_SCROLL_TOP, command=self.scroll_to_top
         )
         self._context_menu.add_command(
-            label=tr_("Scroll to Bottom"), command=self.scroll_to_bottom
+            label=self._msgs.MSG_TEXTEDIT_SCROLL_BOTTOM, command=self.scroll_to_bottom
         )
-        self._context_menu.add_command(label=tr_("Page Up"), command=self._on_page_up)
         self._context_menu.add_command(
-            label=tr_("Page Down"), command=self._on_page_down
+            label=self._msgs.MSG_TEXTEDIT_PAGEUP, command=self._on_page_up
+        )
+        self._context_menu.add_command(
+            label=self._msgs.MSG_TEXTEDIT_PAGEDOWN, command=self._on_page_down
         )
 
         # 绑定右键事件

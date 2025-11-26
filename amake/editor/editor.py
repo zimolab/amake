@@ -8,7 +8,6 @@ from pyguiadapterlite.core.hdpi import set_dpi_aware
 from ._general_page import _GeneralPropertiesTab
 from ._preview_window import PreviewWindow
 from ._variables_page import _VariablesTab, DuplicatedVariableNameError
-from .. import common
 from .._messages import messages
 from ..common import get_appsettings
 from ..makeoptions import MakeOptions
@@ -25,7 +24,6 @@ class AmakeSchemaEditor(object):
     ):
 
         self._msgs = messages()
-        self._appsettings = get_appsettings()
 
         self._parent = parent
         self._size = size or (800, 600)
@@ -50,8 +48,7 @@ class AmakeSchemaEditor(object):
 
     def _setup_ui(self):
 
-        tr_ = common.trfunc()
-        self._parent.title(tr_("Amake Schema Editor"))
+        self._parent.title(self._msgs.MSG_SCHEMA_EDITOR_TITLE)
         self._parent.geometry(f"{self._size[0]}x{self._size[1]}")
 
         self._parent.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -63,26 +60,40 @@ class AmakeSchemaEditor(object):
         self._tab_view.pack(side="top", expand=True, fill="both")
 
         self._general_tab = _GeneralPropertiesTab(self._tab_view.internal, self._schema)
-        self._tab_view.add_tab("id_general", tr_("General"), self._general_tab)
+        self._tab_view.add_tab(
+            "id_general",
+            self._msgs.MSG_SCHEMA_EDITOR_GENERAL_TAB_TITLE,
+            self._general_tab,
+        )
 
         self._variables_tab = _VariablesTab(self._tab_view.internal, self._schema)
-        self._tab_view.add_tab("id_variables", tr_("Variables"), self._variables_tab)
+        self._tab_view.add_tab(
+            "id_variables",
+            self._msgs.MSG_SCHEMA_EDITOR_VARS_TAB_TITLE,
+            self._variables_tab,
+        )
 
         self._bottom_frame = Frame(self._parent)
         self._bottom_frame.pack(side="bottom", fill="x")
 
         self._cancel_button = Button(
-            self._bottom_frame, text=tr_("Cancel"), command=self._on_cancel
+            self._bottom_frame,
+            text=self._msgs.MSG_SCHEMA_EDITOR_CANCEL_BTN_TEXT,
+            command=self._on_cancel,
         )
         self._cancel_button.pack(side="right", padx=5, pady=5)
 
         self._save_button = Button(
-            self._bottom_frame, text=tr_("Save"), command=self._on_save
+            self._bottom_frame,
+            text=self._msgs.MSG_SCHEMA_EDITOR_SAVE_BTN_TEXT,
+            command=self._on_save,
         )
         self._save_button.pack(side="right", padx=5, pady=5)
 
         self._preview_button = Button(
-            self._bottom_frame, text=tr_("Preview"), command=self._on_preview
+            self._bottom_frame,
+            text=self._msgs.MSG_SCHEMA_EDITOR_PREVIEW_BTN_TEXT,
+            command=self._on_preview,
         )
         self._preview_button.pack(side="right", padx=5, pady=5)
 
@@ -109,13 +120,12 @@ class AmakeSchemaEditor(object):
         return editor.schema
 
     def _on_preview(self):
-        tr_ = common.trfunc()
         try:
             new_schema = self._get_updated_schema()
         except DuplicatedVariableNameError as e:
             messagebox.showerror(
-                tr_("Error"),
-                tr_("Duplicated variable names found: {}").format(
+                self._msgs.MSG_ERROR_DIALOG_TITLE,
+                self._msgs.MSG_SCHEMA_EDITOR_DUPLICATE_VAR_ERROR.format(
                     ", ".join(e.duplicated_names)
                 ),
             )
@@ -124,23 +134,22 @@ class AmakeSchemaEditor(object):
         conflict_vars = MakeOptions().get_conflict_names(new_schema.variables.keys())
         if conflict_vars:
             messagebox.showerror(
-                tr_("Error"),
-                tr_(
-                    "The following variable names are reserved by amake internally, please choose other names: {}"
-                ).format(", ".join(conflict_vars)),
+                self._msgs.MSG_ERROR_DIALOG_TITLE,
+                self._msgs.MSG_SCHEMA_EDITOR_VARNAME_CONFLICT_ERROR.format(
+                    ", ".join(conflict_vars)
+                ),
             )
             return
 
         PreviewWindow.preview(self._parent, new_schema)
 
     def _on_save(self):
-        tr_ = common.trfunc()
         try:
             new_schema = self._get_updated_schema()
         except DuplicatedVariableNameError as e:
             messagebox.showerror(
-                tr_("Error"),
-                tr_("Duplicated variable names found, please rename them: {}").format(
+                self._msgs.MSG_ERROR_DIALOG_TITLE,
+                self._msgs.MSG_SCHEMA_EDITOR_DUPLICATE_VAR_ERROR.format(
                     ", ".join(e.duplicated_names)
                 ),
             )
@@ -149,10 +158,10 @@ class AmakeSchemaEditor(object):
         conflict_vars = MakeOptions().get_conflict_names(new_schema.variables.keys())
         if conflict_vars:
             messagebox.showerror(
-                tr_("Error"),
-                tr_(
-                    "The following variable names are reserved by amake internally, please choose other names: {}"
-                ).format(", ".join(conflict_vars)),
+                self._msgs.MSG_ERROR_DIALOG_TITLE,
+                self._msgs.MSG_SCHEMA_EDITOR_VARNAME_CONFLICT_ERROR.format(
+                    ", ".join(conflict_vars)
+                ),
             )
             return
 

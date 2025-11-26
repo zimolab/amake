@@ -2,7 +2,7 @@ from typing import Dict, Any, List, Iterable
 
 from pyguiadapterlite import BaseParameterWidgetConfig
 
-from . import common
+from ._messages import messages
 from .variable import Variable, analyze_variable
 
 MAKE_OPT_MAKE_BIN_KEY = "_make_bin"
@@ -25,110 +25,109 @@ class NoSuchOptionError(Exception):
 class _MakeOptions(object):
 
     def __init__(self):
-        tr_ = common.trfunc()
+        msgs = messages()
 
-        self.GROUP_NAME = tr_("Make Options")
+        self.GROUP_NAME = msgs.MSG_MKOPTS_GROUP_NAME
 
-        _MSG_YES = tr_("Yes")
-        _MSG_NO = tr_("No")
+        _MSG_YES = msgs.MSG_MKOPTS_YES
+        _MSG_NO = msgs.MSG_MKOPTS_NO
 
         self._options = {
             MAKE_OPT_MAKE_BIN_KEY: {
                 "__type__": "file_t",
                 "__processor__": "strip | posixpath",
-                "label": tr_("make command"),
+                "label": msgs.MSG_MKOPTS_MKCMD_LABEL,
                 "default_value": "make",
-                "description": tr_("make command or path to make executable."),
+                "description": msgs.MSG_MKOPTS_MKCMD_DESC,
             },
             MAKE_OPT_OVERRIDE_KEY: {
                 "__type__": "bool",
                 "__processor__": "to_bool",
                 "default_value": True,
-                "label": tr_("override makefile variables"),
+                "label": msgs.MSG_MKOPTS_OVERRIDE_LABEL,
                 "true_text": _MSG_YES,
                 "false_text": _MSG_NO,
-                "description": tr_(
-                    "override makefile variables with the same name using -e option."
-                ),
+                "description": msgs.MSG_MKOPTS_OVERRIDE_DESC,
             },
             MAKE_OPT_DEBUG_KEY: {
                 "__type__": "loose_choice_t",
                 "__processor__": "strip | prefix_ifneq '' '--debug='",
-                "label": tr_("debug level(--debug)"),
+                "label": msgs.MSG_MKOPT_DEBUG_LV_LABEL,
                 "choices": ["", "a", "b", "v", "i", "j", "m"],
                 "default_value": "",
                 "readonly": True,
-                "description": tr_("debug level of make."),
+                "description": msgs.MSG_MKOPT_DEBUG_LV_DESC,
             },
             MAKE_OPT_DIR_KEY: {
                 "__type__": "directory_t",
                 "__processor__": "strip | posixpath | prefix_ifneq '' '--directory='",
-                "label": "makefile directory(--directory)",
+                "label": msgs.MSG_MKOPTS_DIR_LABEL,
                 "default_value": "",
-                "description": tr_("the directory where makefile is located."),
+                "description": msgs.MSG_MKOPTS_DIR_DESC,
             },
             MAKE_OPT_MAKEFILE_KEY: {
                 "__type__": "file_t",
                 "__processor__": "strip | posixpath | prefix_ifneq '' '--makefile='",
-                "label": tr_("makefile(--makefile)"),
+                "label": msgs.MSG_MKOPTS_MAKEFILE_LABEL,
                 "default_value": "",
-                "filters": [(tr_("Makefile"), "Makefile"), ("All Files", "*.*")],
-                "description": tr_("the makefile to be used."),
+                "filters": [
+                    (msgs.MSG_MAKEFILE_TYPE, "Makefile"),
+                    (msgs.MSG_ALL_FILE_TYPE, "*.*"),
+                ],
+                "description": msgs.MSG_MKOPTS_MAKEFILE_DESC,
             },
             MAKE_OPT_INCLUDE_DIR_KEY: {
                 "__type__": "dir_list_t",
                 "__processor__": "no_empty | posixpath_each | pretend_each '-I'",
                 "default_value": [],
-                "label": tr_("include directories(--include-dir)"),
-                "content_title": tr_("Include Directory List"),
+                "label": msgs.MSG_MKOPTS_INCLUDE_DIR_LABEL,
+                "content_title": msgs.MSG_MKOPTS_INCLUDE_DIR_TITLE,
                 "hide_label": False,
-                "description": tr_("directories to search for makefiles."),
+                "description": msgs.MSG_MKOPTS_INCLUDE_DIR_DESC,
             },
             MAKE_OPT_JOBS_KEY: {
                 "__type__": "int_r",
                 "__processor__": "to_str | strip | prefix_ifneq '' '--jobs='",
-                "label": tr_("jobs count(--jobs)"),
+                "label": msgs.MSG_MKOPTS_JOBS_LABEL,
                 "default_value": 1,
                 "min_value": 1,
                 "max_value": 9999,
-                "description": tr_("number of jobs to run simultaneously."),
+                "description": msgs.MSG_MKOPTS_JOBS_DESC,
             },
             MAKE_OPT_ALWAYS_KEY: {
                 "__type__": "bool",
                 "__processor__": "ifelse '--always-make' ''",
-                "label": tr_("always make(--always-make)"),
+                "label": msgs.MSG_MKOPTS_ALWAYS_LABEL,
                 "true_text": _MSG_YES,
                 "false_text": _MSG_NO,
                 "default_value": False,
-                "description": tr_(
-                    "always remake everything, even if the target is up to date."
-                ),
+                "description": msgs.MSG_MKOPTS_ALWAYS_DESC,
             },
             MAKE_OPT_IGNORE_ERRORS_KEY: {
                 "__type__": "bool",
                 "__processor__": "ifelse '--ignore-errors' ''",
-                "label": tr_("ignore errors(--ignore-errors)"),
+                "label": msgs.MSG_MKOPTS_IGNORE_ERRORS_LABEL,
                 "true_text": _MSG_YES,
                 "false_text": _MSG_NO,
                 "default_value": False,
-                "description": tr_("ignore errors and keep going."),
+                "description": msgs.MSG_MKOPTS_IGNORE_ERRORS_DESC,
             },
             MAKE_OPT_DRY_RUN_KEY: {
                 "__type__": "bool",
                 "__processor__": "ifelse '--dry-run' ''",
-                "label": tr_("dry run(--dry-run)"),
+                "label": msgs.MSG_MKOPTS_DRY_RUN_LABEL,
                 "true_text": _MSG_YES,
                 "false_text": _MSG_NO,
                 "default_value": False,
-                "description": tr_("don't actually run any commands."),
+                "description": msgs.MSG_MKOPTS_DRY_RUN_DESC,
             },
             MAKE_OPT_EXTRA_KEY: {
                 "__type__": "text_t",
                 "__processor__": "strip",
-                "label": tr_("extra options "),
+                "label": msgs.MSG_MKOPTS_EXTRA_LABEL,
                 "default_value": "",
                 "height": 3,
-                "description": tr_("extra options to be passed to make command."),
+                "description": msgs.MSG_MKOPTS_EXTRA_DESC,
             },
         }
 

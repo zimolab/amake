@@ -3,22 +3,22 @@ from typing import Optional, List
 
 from pyguiadapterlite import FnExecuteWindow
 
-from .. import common
+from .._messages import messages
 
 
 class AmakeWidgets(object):
     def __init__(self):
+        self._msgs = messages()
         self._targets_combobox: Optional[Combobox] = None
         self._created = False
 
     def create(self, window: FnExecuteWindow):
         if self._created:
             return
-        tr_ = common.trfunc()
 
         separator = Separator(window.bottom_area, orient="vertical")
         separator.pack(side="left", fill="y", padx=5, pady=5)
-        label = Label(window.bottom_area, text=tr_("Target:"))
+        label = Label(window.bottom_area, text=self._msgs.MSG_TARGET_COMBO_LABEL)
         label.pack(side="left", padx=5, pady=5)
         self._targets_combobox = Combobox(window.bottom_area)
         self._targets_combobox.pack(side="left", fill="x", padx=5, pady=5)

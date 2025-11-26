@@ -4,9 +4,9 @@ from typing import Dict, Optional, Tuple, Any
 
 from pyguiadapterlite.components.scrollarea import NColumnScrollableArea, ColumnConfig
 
-from .common import TEXT_EDIT_FONT
-from .. import common
 from ._widgets import TextEdit
+from .common import TEXT_EDIT_FONT
+from .._messages import messages
 from ..schema import AmakeSchema
 
 
@@ -82,14 +82,13 @@ class _GeneralPropertiesTab(NColumnScrollableArea):
         return label, entry
 
     def _create_targets_row(self, default_value: str = "") -> Tuple[Label, Frame]:
-        tr_ = common.trfunc()
         label = Label(self._inner_frame, text="targets")
         frame = Frame(self._inner_frame)
         textview = TextEdit(frame, height=8, font=TEXT_EDIT_FONT)
         textview.pack(side="top", fill="both", expand=True)
         textview.insert("1.0", default_value)
         desc_label = Label(
-            frame, text=tr_("↑ one target per line ↑"), fg="red", font="bold"
+            frame, text=messages().MSG_GENERAL_TAB_TARGETS_HINT, fg="red", font="bold"
         )
         desc_label.pack(side="bottom", fill="x")
         self._targets_edit = textview

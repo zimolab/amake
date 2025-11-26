@@ -18,7 +18,7 @@ from .common import (
     KEY_VAR_HIDE_LABEL,
     KEY_VAR_LABEL_JUSTIFY,
 )
-from .. import common
+from .._messages import messages
 from ..common import get_default_processor
 from ..variable import AVAILABLE_TYPES, analyze_variable
 
@@ -44,19 +44,27 @@ class _VariableEdit(NColumnScrollableArea):
             ),
             **kwargs,
         )
+
+        self._msgs = messages()
+
         self._parent = parent
         self._variable_def = variable_def.copy()
 
-        tr_ = common.trfunc()
-        self._variable_name_label = Label(self._inner_frame, text=tr_("Variable Name"))
+        self._variable_name_label = Label(
+            self._inner_frame, text=self._msgs.MSG_VARS_TAB_VARNAME_LABEL
+        )
         self._variable_name_edit = Entry(self._inner_frame)
         self.add_row((self._variable_name_label, self._variable_name_edit))
 
-        variable_label = Label(self._inner_frame, text=tr_("Label"))
+        variable_label = Label(
+            self._inner_frame, text=self._msgs.MSG_VARS_TAB_VARLABEL_LABEL
+        )
         self._variable_edit = Entry(self._inner_frame)
         self.add_row((variable_label, self._variable_edit))
 
-        type_label = Label(self._inner_frame, text=tr_("Type"))
+        type_label = Label(
+            self._inner_frame, text=self._msgs.MSG_VARS_TAB_VARTYPE_LABEL
+        )
         self._variable_type_edit = Combobox(
             self._inner_frame, values=_VAR_TYPES, state="readonly"
         )
@@ -65,21 +73,29 @@ class _VariableEdit(NColumnScrollableArea):
         )
         self.add_row((type_label, self._variable_type_edit))
 
-        processors_label = Label(self._inner_frame, text=tr_("Processors"))
+        processors_label = Label(
+            self._inner_frame, text=self._msgs.MSG_VARS_TAB_VARPROCESSORS_LABEL
+        )
         self._variable_processors_edit = Entry(self._inner_frame)
         self.add_row((processors_label, self._variable_processors_edit))
 
-        group_label = Label(self._inner_frame, text=tr_("Group"))
+        group_label = Label(
+            self._inner_frame, text=self._msgs.MSG_VARS_TAB_VARGROUP_LABEL
+        )
         self._variable_group_edit = Entry(self._inner_frame)
         self.add_row((group_label, self._variable_group_edit))
 
-        description_label = Label(self._inner_frame, text=tr_("Description"))
+        description_label = Label(
+            self._inner_frame, text=self._msgs.MSG_VARS_TAB_VARDESC_LABEL
+        )
         self._variable_description_edit = TextEdit(
             self._inner_frame, height=5, font=TEXT_EDIT_FONT
         )
         self.add_row((description_label, self._variable_description_edit))
 
-        extra_properties_label = Label(self._inner_frame, text=tr_("Extra Properties"))
+        extra_properties_label = Label(
+            self._inner_frame, text=self._msgs.MSG_VARS_TAB_VAREXTRAS_LABEL
+        )
         self._extra_properties_edit = TextEdit(
             self._inner_frame, height=15, font=TEXT_EDIT_FONT
         )
@@ -197,6 +213,8 @@ class VariableEditWindow(Toplevel):
     ):
         super().__init__(parent, **kwargs)
 
+        self._msgs = messages()
+
         self.title(title)
         if position:
             self.geometry(f"{size[0]}x{size[1]}+{position[0]}+{position[1]}")
@@ -210,7 +228,9 @@ class VariableEditWindow(Toplevel):
         bottom_frame.pack(side="bottom", fill="x", padx=5, pady=5)
         self._ok_button = Button(bottom_frame, text="OK", command=self._on_ok)
         self._cancel_button = Button(
-            bottom_frame, text="Cancel", command=self._on_cancel
+            bottom_frame,
+            text=self._msgs.MSG_VARS_TAB_CANCEL_BTN_TEXT,
+            command=self._on_cancel,
         )
 
         self._cancel_button.pack(side="right", padx=5, pady=5)
@@ -228,7 +248,6 @@ class VariableEditWindow(Toplevel):
         return self._is_cancelled
 
     def _on_ok(self):
-        tr_ = common.trfunc()
         try:
             variable_def = self._edit.get_variable_def()
             tmp = variable_def.copy()
@@ -236,8 +255,8 @@ class VariableEditWindow(Toplevel):
             analyze_variable(tmp)
         except Exception as e:
             messagebox.showerror(
-                tr_("Error"),
-                tr_(f"invalid extra properties found: {e}").format(str(e)),
+                self._msgs.MSG_ERROR_DIALOG_TITLE,
+                self._msgs.MSG_VARS_TAB_INVALID_VAR_ERROR.format(str(e)),
                 parent=self,
             )
             return

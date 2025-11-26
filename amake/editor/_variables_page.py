@@ -4,9 +4,6 @@ from tkinter.ttk import Frame, Button
 from typing import Optional, List, Dict, Any
 
 from ._edit_window import VariableEditWindow
-from .. import common
-from ..common import get_default_processor
-from ..schema import AmakeSchema
 from ._widgets import TableView
 from .common import (
     KEY_VAR_NAME,
@@ -16,6 +13,9 @@ from .common import (
     KEY_VAR_PROCESSOR,
     get_properties_of,
 )
+from .._messages import messages
+from ..common import get_default_processor
+from ..schema import AmakeSchema
 from ..utils import find_duplicates, move_to_desktop_center
 
 
@@ -29,6 +29,7 @@ class _VariablesTab(Frame):
 
     def __init__(self, parent: Widget, schema: AmakeSchema):
         super().__init__(parent)
+        self._msgs = messages()
 
         self._up_button: Optional[Button] = None
         self._down_button: Optional[Button] = None
@@ -74,14 +75,13 @@ class _VariablesTab(Frame):
         self._create_buttons()
 
     def _create_variables_table(self):
-        tr_ = common.trfunc()
         self._variables_table = TableView(
             self,
             headers={
-                KEY_VAR_NAME: tr_("Variable Name"),
-                KEY_VAR_TYPE: tr_("Variable Type"),
-                KEY_VAR_LABEL: tr_("Variable Label"),
-                KEY_VAR_GROUP: tr_("Variable Group"),
+                KEY_VAR_NAME: self._msgs.MSG_VARS_TAB_VARNAME_COL_TITLE,
+                KEY_VAR_TYPE: self._msgs.MSG_VARS_TAB_VARTYPE_COL_TITLE,
+                KEY_VAR_LABEL: self._msgs.MSG_VARS_TAB_VARLABEL_COL_TITLE,
+                KEY_VAR_GROUP: self._msgs.MSG_VARS_TAB_VARGROUP_COL_TITLE,
             },
         )
         self._variables_table.add_double_click_callback(self._on_double_click)
@@ -89,29 +89,44 @@ class _VariablesTab(Frame):
         self._variables_table.add_items(self._variable_definitions)
 
     def _create_buttons(self):
-        tr_ = common.trfunc()
         button_frame = Frame(self)
         button_frame.pack(side="bottom", fill="x")
-        self._up_button = Button(button_frame, text=tr_("Up"), command=self._on_move_up)
+        self._up_button = Button(
+            button_frame,
+            text=self._msgs.MSG_VARS_TAB_UP_BTN_TEXT,
+            command=self._on_move_up,
+        )
         self._up_button.pack(side="left", padx=2, pady=5)
 
         self._down_button = Button(
-            button_frame, text=tr_("Down"), command=self._on_move_down
+            button_frame,
+            text=self._msgs.MSG_VARS_TAB_DOWN_BTN_TEXT,
+            command=self._on_move_down,
         )
         self._down_button.pack(side="left", padx=2, pady=5)
 
-        self._add_button = Button(button_frame, text=tr_("Add"), command=self._on_add)
+        self._add_button = Button(
+            button_frame,
+            text=self._msgs.MSG_VARS_TAB_ADD_BTN_TEXT,
+            command=self._on_add,
+        )
 
         self._remove_button = Button(
-            button_frame, text=tr_("Remove"), command=self._on_remove
+            button_frame,
+            text=self._msgs.MSG_VARS_TAB_REMOVE_BTN_TEXT,
+            command=self._on_remove,
         )
 
         self._clear_button = Button(
-            button_frame, text=tr_("Clear"), command=self._on_clear
+            button_frame,
+            text=self._msgs.MSG_VARS_TAB_CLEAR_BTN_TEXT,
+            command=self._on_clear,
         )
 
         self._edit_button = Button(
-            button_frame, text=tr_("Edit"), command=self._on_edit
+            button_frame,
+            text=self._msgs.MSG_VARS_TAB_EDIT_BTN_TEXT,
+            command=self._on_edit,
         )
 
         self._clear_button.pack(side="right", padx=2, pady=5)
@@ -123,12 +138,11 @@ class _VariablesTab(Frame):
         self._start_add_item()
 
     def _on_edit(self):
-        tr_ = common.trfunc()
         selection = self._variables_table.selected_indexes
         if not selection:
             messagebox.showwarning(
-                tr_("Warning"),
-                tr_("Please select a variable to edit!"),
+                self._msgs.MSG_WARNING_DIALOG_TITLE,
+                self._msgs.MSG_VARS_TAB_NO_SELECTION_WARNING,
                 parent=self,
             )
             return
@@ -137,48 +151,44 @@ class _VariablesTab(Frame):
         self._start_edit_item(index, var_def)
 
     def _on_remove(self):
-        tr_ = common.trfunc()
         selection = self._variables_table.selected_items
         if not selection:
             messagebox.showwarning(
-                tr_("Warning"),
-                tr_("Please select variables to remove!"),
+                self._msgs.MSG_WARNING_DIALOG_TITLE,
+                self._msgs.MSG_VARS_TAB_NO_SELECTION_WARNING,
                 parent=self,
             )
             return
         if messagebox.askyesno(
-            tr_("Confirm"),
-            tr_("Are you sure to remove selected variables?"),
+            self._msgs.MSG_CONFIRM_DIALOG_TITLE,
+            self._msgs.MSG_VARS_TAB_REMOVE_CONFIRM,
             parent=self,
         ):
             self._variables_table.remove_selected_items()
 
     def _on_clear(self):
-        tr_ = common.trfunc()
         if messagebox.askyesno(
-            tr_("Confirm"),
-            tr_("Are you sure to clear all variables?"),
+            self._msgs.MSG_CONFIRM_DIALOG_TITLE,
+            self._msgs.MSG_VARS_TAB_REMOVE_ALL_CONFIRM,
             parent=self,
         ):
             self._variables_table.clear_items()
 
     def _on_move_up(self):
-        tr_ = common.trfunc()
         if not self._variables_table.selected_indexes:
             messagebox.showwarning(
-                tr_("Warning"),
-                tr_("Please select a item first!"),
+                self._msgs.MSG_WARNING_DIALOG_TITLE,
+                self._msgs.MSG_VARS_TAB_NO_SELECTION_WARNING,
                 parent=self,
             )
             return
         self._variables_table.move_up()
 
     def _on_move_down(self):
-        tr_ = common.trfunc()
         if not self._variables_table.selected_indexes:
             messagebox.showwarning(
-                tr_("Warning"),
-                tr_("Please select a item first!"),
+                self._msgs.MSG_WARNING_DIALOG_TITLE,
+                self._msgs.MSG_VARS_TAB_NO_SELECTION_WARNING,
                 parent=self,
             )
             return
@@ -192,11 +202,10 @@ class _VariablesTab(Frame):
         self._start_edit_item(index, var_def)
 
     def _start_edit_item(self, index: int, var_def: Dict[str, Any]):
-        tr_ = common.trfunc()
         editor = VariableEditWindow(
             self,
             var_def,
-            title=tr_("Variable Definition Editor - ") + var_def[KEY_VAR_NAME],
+            title=self._msgs.MSG_VARS_TAB_EDITOR_TITLE + " - " + var_def[KEY_VAR_NAME],
         )
         move_to_desktop_center(editor)
         editor.grab_set()
@@ -205,7 +214,6 @@ class _VariablesTab(Frame):
             self._variables_table.set_item(index, editor.variable_def)
 
     def _start_add_item(self):
-        tr_ = common.trfunc()
         init_var_def = {
             **get_properties_of("str"),
             KEY_VAR_NAME: "VariableName",
@@ -215,7 +223,7 @@ class _VariablesTab(Frame):
             KEY_VAR_PROCESSOR: get_default_processor("str"),
         }
         editor = VariableEditWindow(
-            self, init_var_def, title=tr_("Variable Definition Editor ")
+            self, init_var_def, title=self._msgs.MSG_VARS_TAB_EDITOR_TITLE
         )
         move_to_desktop_center(editor)
         editor.grab_set()

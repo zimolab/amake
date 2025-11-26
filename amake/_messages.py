@@ -105,6 +105,98 @@ class _Messages:
             "Application settings has been saved! Some changes may require a restart of the program."
         )
 
+        self.MSG_SCHEMA_EDITOR_TITLE = tr_("Schema Editor")
+        self.MSG_SCHEMA_EDITOR_GENERAL_TAB_TITLE = tr_("General")
+        self.MSG_SCHEMA_EDITOR_VARS_TAB_TITLE = tr_("Variables")
+        self.MSG_SCHEMA_EDITOR_CANCEL_BTN_TEXT = tr_("Cancel")
+        self.MSG_SCHEMA_EDITOR_SAVE_BTN_TEXT = tr_("Save")
+        self.MSG_SCHEMA_EDITOR_PREVIEW_BTN_TEXT = tr_("Save")
+        self.MSG_SCHEMA_EDITOR_DUPLICATE_VAR_ERROR = tr_(
+            "Duplicated variable names found: {}"
+        )
+        self.MSG_SCHEMA_EDITOR_VARNAME_CONFLICT_ERROR = tr_(
+            "The following variable names are reserved by amake internally, please choose other names: {}"
+        )
+
+        self.MSG_VARS_TAB_VARNAME_COL_TITLE = tr_("Variable Name")
+        self.MSG_VARS_TAB_VARTYPE_COL_TITLE = tr_("Type")
+        self.MSG_VARS_TAB_VARLABEL_COL_TITLE = tr_("Label")
+        self.MSG_VARS_TAB_VARGROUP_COL_TITLE = tr_("Default Value")
+        self.MSG_VARS_TAB_UP_BTN_TEXT = tr_("Up")
+        self.MSG_VARS_TAB_DOWN_BTN_TEXT = tr_("Down")
+        self.MSG_VARS_TAB_ADD_BTN_TEXT = tr_("Add")
+        self.MSG_VARS_TAB_REMOVE_BTN_TEXT = tr_("Remove")
+        self.MSG_VARS_TAB_CLEAR_BTN_TEXT = tr_("Remove All")
+        self.MSG_VARS_TAB_CANCEL_BTN_TEXT = tr_("Cancel")
+
+        self.MSG_VARS_TAB_VARNAME_LABEL = tr_("Variable Name")
+        self.MSG_VARS_TAB_VARLABEL_LABEL = tr_("Label")
+        self.MSG_VARS_TAB_VARTYPE_LABEL = tr_("Type")
+        self.MSG_VARS_TAB_VARGROUP_LABEL = tr_("Group")
+        self.MSG_VARS_TAB_VARDESC_LABEL = tr_("Description")
+        self.MSG_VARS_TAB_VAREXTRAS_LABEL = tr_("Extra Properties")
+        self.MSG_VARS_TAB_VARPROCESSORS_LABEL = tr_("Processors")
+        self.MSG_VARS_TAB_INVALID_VAR_ERROR = tr_("invalid extra properties found: {}")
+
+        self.MSG_VARS_TAB_EDIT_BTN_TEXT = tr_("Edit")
+        self.MSG_VARS_TAB_NO_SELECTION_WARNING = tr_("No variable selected!")
+        self.MSG_VARS_TAB_REMOVE_CONFIRM = tr_(
+            "Do you want to remove the selected variable?"
+        )
+        self.MSG_VARS_TAB_REMOVE_ALL_CONFIRM = tr_(
+            "Do you want to remove all variables?"
+        )
+        self.MSG_VARS_TAB_EDITOR_TITLE = tr_("Variable Definition Editor")
+
+        self.MSG_GENERAL_TAB_TARGETS_HINT = tr_("↑ one target per line ↑")
+
+        self.MSG_TARGET_COMBO_LABEL = tr_("Target:")
+
+        self.MSG_TEXTEDIT_COPY_ACTION = tr_("Copy")
+        self.MSG_TEXTEDIT_CUT_ACTION = tr_("Cut")
+        self.MSG_TEXTEDIT_PASTE_ACTION = tr_("Paste")
+        self.MSG_TEXTEDIT_UNDO_ACTION = tr_("Undo")
+        self.MSG_TEXTEDIT_REDO_ACTION = tr_("Redo")
+        self.MSG_TEXTEDIT_SELECT_ALL_ACTION = tr_("Select All")
+        self.MSG_TEXTEDIT_SCROLL_TOP = tr_("Scroll to Top")
+        self.MSG_TEXTEDIT_SCROLL_BOTTOM = tr_("Scroll to Bottom")
+        self.MSG_TEXTEDIT_PAGEUP = tr_("Page Up")
+        self.MSG_TEXTEDIT_PAGEDOWN = tr_("Page Down")
+
+        self.MSG_MKOPTS_GROUP_NAME = tr_("Make Options")
+        self.MSG_MKOPTS_YES = tr_("Yes")
+        self.MSG_MKOPTS_NO = tr_("No")
+        self.MSG_MKOPTS_MKCMD_LABEL = tr_("make command")
+        self.MSG_MKOPTS_MKCMD_DESC = tr_("make command or path to make executable.")
+        self.MSG_MKOPTS_OVERRIDE_LABEL = tr_("override makefile variables")
+        self.MSG_MKOPTS_OVERRIDE_DESC = tr_(
+            "override makefile variables with the same name using -e option."
+        )
+        self.MSG_MKOPT_DEBUG_LV_LABEL = tr_("debug level(--debug)")
+        self.MSG_MKOPT_DEBUG_LV_DESC = tr_("debug level of make.")
+        self.MSG_MKOPTS_DIR_LABEL = tr_("makefile directory(--directory)")
+        self.MSG_MKOPTS_DIR_DESC = tr_("path to makefile.")
+        self.MSG_MKOPTS_MAKEFILE_LABEL = tr_("makefile(--makefile)")
+        self.MSG_MKOPTS_MAKEFILE_DESC = tr_("the makefile to be used.")
+
+        self.MSG_MAKEFILE_TYPE = tr_("Makefile")
+
+        self.MSG_MKOPTS_EXTRA_LABEL = tr_("extra options ")
+        self.MSG_MKOPTS_EXTRA_DESC = tr_("extra options to be passed to make command.")
+        self.MSG_MKOPTS_DRY_RUN_LABEL = tr_("dry run(--dry-run)")
+        self.MSG_MKOPTS_DRY_RUN_DESC = tr_("don't actually run any commands.")
+        self.MSG_MKOPTS_IGNORE_ERRORS_LABEL = tr_("ignore errors(--ignore-errors)")
+        self.MSG_MKOPTS_IGNORE_ERRORS_DESC = tr_("ignore errors and keep going.")
+        self.MSG_MKOPTS_ALWAYS_LABEL = tr_("always make(--always-make)")
+        self.MSG_MKOPTS_ALWAYS_DESC = tr_(
+            "always remake everything, even if the target is up to date."
+        )
+        self.MSG_MKOPTS_JOBS_LABEL = tr_("jobs count(--jobs)")
+        self.MSG_MKOPTS_JOBS_DESC = tr_("number of jobs to run simultaneously.")
+        self.MSG_MKOPTS_INCLUDE_DIR_LABEL = tr_("include directories(--include-dir)")
+        self.MSG_MKOPTS_INCLUDE_DIR_TITLE = tr_("Include Directory List")
+        self.MSG_MKOPTS_INCLUDE_DIR_DESC = tr_("directories to search for makefiles.")
+
 
 _messages: Optional[_Messages] = None
 

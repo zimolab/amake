@@ -18,7 +18,7 @@ from pyguiadapterlite.components.textview import SimpleTextViewer
 from ._aboutdlg import AboutDialog, AboutSchemaDialog
 from .cmd import AmakeCommand
 from .widgets import AmakeWidgets
-from .. import common, assets
+from .. import assets
 from .._messages import messages
 from ..appsettings import AmakeAppSettings
 from ..makeoptions import MAKE_OPT_MAKE_BIN_KEY, MakeOptions
@@ -95,7 +95,6 @@ class AmakeActionsManager(object):
         self._menus = []
 
     def create(self) -> List[Menu]:
-        tr_ = common.trfunc()
         if self._menus:
             return self._menus
         file_actions = [
