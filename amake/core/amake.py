@@ -108,15 +108,17 @@ class Amake(object):
     def before_window_close(self, window: FnExecuteWindow) -> bool:
 
         window.close_param_validation_win()
-        ret = window.ask_yes_no_cancel(
-            message=self._msgs.MSG_QUIT_CONFIRMATION,
-            title=self._msgs.MSG_QUIT_DIALOG_TITLE,
-        )
-        if ret is None:
-            return False
+        if self._appsettings.confirm_exit:
+            ret = window.ask_yes_no_cancel(
+                message=self._msgs.MSG_QUIT_CONFIRMATION,
+                title=self._msgs.MSG_QUIT_DIALOG_TITLE,
+            )
+            if ret is None:
+                return False
 
-        if ret:
-            return self._menu_manager.update_and_save_configurations(window)
+            if ret:
+                return self._menu_manager.update_and_save_configurations(window)
+            return True
         return True
 
     # noinspection PyUnusedLocal
