@@ -4,6 +4,11 @@ import json
 from pathlib import Path
 from typing import Union, Optional, Callable, Type
 
+from .consts import (
+    GLOBAL_VARNAME_APPSETTINGS,
+    GLOBAL_VARNAME_NTR_FUNC,
+    GLOBAL_VARNAME_TR_FUNC,
+)
 from .processors import (
     to_int,
     no_empty,
@@ -95,7 +100,7 @@ def default_ntr(text: str, text_plural: str, count: int) -> str:
 
 
 def trfunc() -> Callable[[str], str]:
-    func = getattr(builtins, "__tr__", None)
+    func = getattr(builtins, GLOBAL_VARNAME_TR_FUNC, None)
     if func is None:
         print(
             "__tr__ function not found, i18n not prepared, a default function will be used"
@@ -105,7 +110,7 @@ def trfunc() -> Callable[[str], str]:
 
 
 def ntrfunc() -> Callable[[str, str, int], str]:
-    func = getattr(builtins, "__ntr__", None)
+    func = getattr(builtins, GLOBAL_VARNAME_NTR_FUNC, None)
     if func is None:
         print(
             "__ntr__ function not found, i18n not prepared, a default function will be used"
@@ -173,3 +178,12 @@ def get_default_processor(typ: Union[str, Type]) -> str:
     if not _processor_map:
         _processor_map = _ProcessorMap()
     return _processor_map.get_processor(typ)
+
+
+def get_appsettings():
+    appsettings = getattr(builtins, GLOBAL_VARNAME_APPSETTINGS, None)
+    if appsettings is None:
+        raise RuntimeError(
+            "application is not initialized, please start the app from main.py"
+        )
+    return appsettings

@@ -10,7 +10,6 @@ Usage:
     amake edit [-C <dir> | --current-dir=<dir>] [-T | --text-editor] [<schemafile>]
     amake process [-C <dir> | --current-dir=<dir>] [--vars=<vars,...>] [<schemafile>] [<configfile>]
     amake generate [-C <dir> | --current-dir=<dir>] [-o <outputfile> | --output=<outputfile>] [-Y | --yes] [<schemafile>] [<configfile>]
-    amake appconfig (--set=<config-paris> | --reset | --list | --edit) [-y | --yes]
 
 Commands:
     init        Initialize a new amake project in the current directory. An amake project means a directory
@@ -92,58 +91,30 @@ Options:
 
     -Y, --yes                                When specified, it will not ask for confirmation before some important
                                              operations, such as generating the build script or resetting the app config .etc.
-
-    --set=<config-paris>                     This option is used with the "appconfig" command. It is used to set the value
-                                             of a specific config item. Syntax: --set="config1=value1,config2=value2,...".
-                                             For example, user can change the locale of the app by the following command:
-                                                amake appconfig --set=locale=en_US
-
-    --reset                                  This option is used with the "appconfig" command. It is used to reset the
-                                             app config. Sometimes, the app config file maybe corrupted, this option will
-                                             remove the app config file and create a new one with default values.
-
-    --list                                   This option is used with the "appconfig" command. It is used to list all
-                                             config items and their current values.
-
-    --edit                                   This option is used with the "appconfig" command. It is used to edit the
-                                             app config file in a text editor.
-
 """
 
 import builtins
-import os
+import json
 import sys
 from pathlib import Path
 from typing import Optional
 
-from amake.thirdparty import platformdirs
-
-__APP_NAME__ = "amake"
-__APP_VERSION__ = "0.1.0"
-__APP_DESCRIPTION__ = "A makefile assistant tool to help you write more flexible and maintainable makefiles."
-__APP_LICENSE__ = "MIT License"
-__APP_COPYRIGHT__ = "Copyright (c) 2021 zimolab"
-__APP_DATADIR__ = platformdirs.user_data_dir(__APP_NAME__.lower())
-__APP_LOCALEDIR__ = os.path.join(__APP_DATADIR__, "locales")
-__APP_CONFIG_FILEPATH__ = os.path.join(__APP_DATADIR__, "amake_config.json")
-__APP_REPO__ = "https://github.com/zimolab/amake"
-__APP_AUTHOR__ = "ziomlab"
-
+from amake.consts import (
+    GLOBAL_VARNAME_APPSETTINGS,
+    APP_NAME,
+    APP_VERSION,
+    APP_DATADIR,
+    APP_LOCALEDIR,
+    APP_SETTINGS_FILE,
+    GLOBAL_VARNAME_DEBUG_FUNC,
+    GLOBAL_VARNAME_ERROR_FUNC,
+    GLOBAL_VARNAME_TR_FUNC,
+    GLOBAL_VARNAME_NTR_FUNC,
+)
 
 _DEBUG_MODE = True
 
-setattr(builtins, "_amake_app_name", __APP_NAME__)
-setattr(builtins, "_amake_app_description", __APP_DESCRIPTION__)
-setattr(builtins, "_amake_app_datadir", __APP_DATADIR__)
-setattr(builtins, "_amake_app_version", __APP_VERSION__)
-setattr(builtins, "_amake_app_repo", __APP_REPO__)
-setattr(builtins, "_amake_app_author", __APP_AUTHOR__)
-setattr(builtins, "_amake_appconfig_filepath", __APP_CONFIG_FILEPATH__)
-setattr(builtins, "_amake_app_license", __APP_LICENSE__)
-setattr(builtins, "_amake_app_copyright", __APP_COPYRIGHT__)
-
-
-ALL_COMMANDS = ("edit", "init", "init-config", "process", "generate", "appconfig")
+ALL_COMMANDS = ("edit", "init", "init-config", "process", "generate")
 
 
 def _debug(msg):
@@ -159,80 +130,25 @@ def _error(msg):
 
 
 # Add debug functions to builtins, so they can be accessed from anywhere
-setattr(builtins, "_amake_debug", _debug)
-setattr(builtins, "_amake_error", _error)
+setattr(builtins, GLOBAL_VARNAME_DEBUG_FUNC, _debug)
+setattr(builtins, GLOBAL_VARNAME_ERROR_FUNC, _error)
 
 
-def _load_app_config():
-    from amake.appconfig import AmakeAppConfig
+def _setup_app_locale():
+    import os
+    from amake.i18n import AmakeI18N, DEFAULT_LOCALE_CODE
+    from amake import assets
 
-    _debug(f"Loading app config from: {__APP_CONFIG_FILEPATH__}")
-    app_config_path = Path(__APP_CONFIG_FILEPATH__)
-    if not app_config_path.is_file():
-        _debug(f"App config file not found")
-        app_config = AmakeAppConfig.default()
-        _debug(f"Creating new app config file: {app_config_path.as_posix()}")
-        app_config_path.parent.mkdir(parents=True, exist_ok=True)
-        app_config.save(
-            app_config_path.as_posix(), encoding="utf-8", ensure_ascii=False, indent=2
-        )
-        return app_config
-    try:
-        app_config = AmakeAppConfig.load(app_config_path.as_posix())
-        return app_config
-    except Exception as e:
-        _error(
-            f"Failed to load app config from file: {app_config_path.as_posix()}: {e}"
-        )
-        app_config = AmakeAppConfig.default()
-        app_config.save(
-            app_config_path.as_posix(), encoding="utf-8", ensure_ascii=False, indent=2
-        )
-        return app_config
-
-
-# Load app config
-_app_config = _load_app_config()
-# add app_config to builtins, so it can be accessed from anywhere
-setattr(builtins, "_amake_app_config", _app_config)
-
-
-def _setup_env():
-    global _app_config
-    # Set environment variables
-    _debug(f"Setting environment variables...")
-    # MAKE SURE SETTING ENVIRONMENT VARIABLES BEFORE IMPORTING PYGUIADAPTERLITE AND ANY SUB PACKAGES OR MODULES OF IT
-    # OTHERWISE I18N WON'T WORK PROPERLY
-    os.environ["PYGUIADAPTERLITE_LOGGING_MESSAGE"] = "0"
-    os.environ["PYGUIADAPTERLITE_LOCALE"] = _app_config.locale
-    import pyguiadapterlite
-
-    pyguiadapterlite.set_default_parameter_label_justify("left")
-
-
-_setup_env()
-
-
-def _check_dirs():
-    _debug(f"Checking app data directories...")
-    app_data_dir = Path(__APP_DATADIR__)
-    if not app_data_dir.is_dir():
-        _debug(f"Creating app data directory: {app_data_dir.as_posix()}")
-        app_data_dir.mkdir(parents=True)
-
-    app_locale_dir = Path(__APP_LOCALEDIR__)
-    if not app_locale_dir.is_dir():
-        _debug(f"Creating app locale directory: {app_locale_dir.as_posix()}")
-        app_locale_dir.mkdir(parents=True)
-
-
-_check_dirs()
-
-
-def _initialize_locale():
-    global _app_config
     _debug(f"Initializing app locale...")
-    app_locale_dir = Path(__APP_LOCALEDIR__)
+    app_locale_dir = Path(APP_LOCALEDIR)
+
+    if _DEBUG_MODE:
+        _debug("Remove all locale files in debug mode")
+        if app_locale_dir.is_dir():
+            import shutil
+
+            shutil.rmtree(app_locale_dir.as_posix(), ignore_errors=True)
+
     if not app_locale_dir.is_dir():
         _debug(f"Creating app locale directory: {app_locale_dir.as_posix()}")
         app_locale_dir.mkdir(parents=True)
@@ -240,15 +156,100 @@ def _initialize_locale():
     if not os.listdir(app_locale_dir.as_posix()):
         _debug(f"No locale files found in {app_locale_dir.as_posix()}")
         _debug(f"Copying default locale files to {app_locale_dir.as_posix()}")
-        from amake import assets
 
         assets.export_builtin_locales(app_locale_dir.as_posix(), overwrite=True)
 
-    _debug(f"Setting app locale: {_app_config.locale}")
-    _app_config.setup_i18n(app_locale_dir.as_posix())
+    lang = DEFAULT_LOCALE_CODE
+    try:
+        with open(APP_SETTINGS_FILE, "r", encoding="utf-8") as f:
+            appsettings_obj = json.load(f)
+            lang = str(appsettings_obj.get("locale", DEFAULT_LOCALE_CODE)).strip()
+    except Exception as e:
+        _error(
+            f"Failed to load app settings from file, use default locale: {APP_SETTINGS_FILE}: {e}"
+        )
+
+    _debug(f"Setting app locale to:  {lang}")
+
+    i18n = AmakeI18N(localedir=app_locale_dir.as_posix(), locale_code=lang)
+
+    def gettext(string_id: str) -> str:
+        if i18n is None:
+            return string_id
+        return i18n.gettext(string_id)
+
+    def ngettext(singular: str, plural: str, n: int) -> str:
+        if i18n is None:
+            return singular if n == 1 else plural
+        return i18n.ngettext(singular, plural, n)
+
+    # 把当前i18n的翻译函数注入到全局空间
+    # 之后，可以使用common.trfunc()/common.ntrfunc()来获取到下面两个翻译函数
+    setattr(builtins, GLOBAL_VARNAME_TR_FUNC, gettext)
+    setattr(builtins, GLOBAL_VARNAME_NTR_FUNC, ngettext)
 
 
-_initialize_locale()
+_setup_app_locale()
+
+
+def _load_appsettings():
+    from amake.appsettings import AmakeAppSettings
+
+    _debug(f"Loading app config from: {APP_SETTINGS_FILE}")
+    appsettings_path = Path(APP_SETTINGS_FILE)
+    if not appsettings_path.is_file():
+        _debug(f"App settings file not found")
+        appsettings = AmakeAppSettings.default()
+        _debug(f"Creating new app settings file: {appsettings_path.as_posix()}")
+        appsettings_path.parent.mkdir(parents=True, exist_ok=True)
+        appsettings.save(appsettings_path.as_posix())
+        return appsettings
+    try:
+        appsettings = AmakeAppSettings.load(appsettings_path.as_posix())
+        return appsettings
+    except Exception as e:
+        _error(
+            f"Failed to load app settings from file: {appsettings_path.as_posix()}: {e}"
+        )
+        appsettings = AmakeAppSettings.default()
+        appsettings.save(appsettings_path.as_posix())
+        return appsettings
+
+
+# Load app config
+_appsettings = _load_appsettings()
+# add appsettings to builtins, so it can be accessed from anywhere
+setattr(builtins, GLOBAL_VARNAME_APPSETTINGS, _appsettings)
+
+
+def _pyguiadapter_init():
+    import pyguiadapterlite
+
+    global _appsettings
+    _debug(f"Initializing PyGUIAdapterLite...")
+
+    pyguiadapterlite.set_logging_enabled(False)
+    pyguiadapterlite.set_locale_code(_appsettings.locale)
+    pyguiadapterlite.set_default_parameter_label_justify("left")
+
+
+_pyguiadapter_init()
+
+
+def _check_dirs():
+    _debug(f"Checking app data directories...")
+    app_data_dir = Path(APP_DATADIR)
+    if not app_data_dir.is_dir():
+        _debug(f"Creating app data directory: {app_data_dir.as_posix()}")
+        app_data_dir.mkdir(parents=True)
+
+    app_locale_dir = Path(APP_LOCALEDIR)
+    if not app_locale_dir.is_dir():
+        _debug(f"Creating app locale directory: {app_locale_dir.as_posix()}")
+        app_locale_dir.mkdir(parents=True)
+
+
+_check_dirs()
 
 
 def any_true(args, *opts):
@@ -276,8 +277,7 @@ def get_one_of(args, *opts, default=None) -> Optional[str]:
 ################Commands##################
 
 
-def _run_amake(args) -> int:
-    global _app_config
+def _run_amake_main(args) -> int:
 
     current_dir = get_one_of(args, "--current-dir", "<dir>", default=None)
     schema_file = get_one_of(args, "--schema", "<schemafile>", default=None)
@@ -285,7 +285,7 @@ def _run_amake(args) -> int:
 
     from amake.tools import amake_main
 
-    return amake_main(_app_config, schema_file, config_file, current_dir)
+    return amake_main(schema_file, config_file, current_dir)
 
 
 def _run_command_init(args) -> int:
@@ -347,57 +347,16 @@ def _run_command_generate(args) -> int:
     )
 
 
-def _run_command_appconfig(args) -> int:
-    global _app_config
-    from amake.utils import parse_key_value_pairs
-
-    from amake.tools import (
-        appconfig_list,
-        appconfig_edit,
-        appconfig_reset,
-        appconfig_set,
-    )
-
-    if any_true(args, "--list"):
-        return appconfig_list(_app_config)
-
-    if any_true(args, "--edit"):
-        return appconfig_edit(_app_config)
-
-    if any_true(args, "--reset"):
-        no_confirm = any_true(args, "--yes", "-Y")
-        return appconfig_reset(_app_config, no_confirm)
-
-    if any_true(args, "--set"):
-        print("Setting app configs...")
-        config_paris_str = get_one_of(args, "--set", "<config-paris>", default=None)
-        if not config_paris_str.strip():
-            print("Please specify config-paris!")
-            return -1
-
-        try:
-            config_paris = parse_key_value_pairs(config_paris_str)
-        except Exception as e:
-            print(f"Failed to parse config-paris: {e}")
-            return -1
-        if not config_paris:
-            print("No config-paris specified!")
-            return -1
-        return appconfig_set(_app_config, config_paris)
-
-    return -1
-
-
 def main():
     from amake.thirdparty.docopt import docopt
 
     doc = __doc__.strip()
-    args = docopt(doc, version=f"{__APP_NAME__} {__APP_VERSION__}")
+    args = docopt(doc, version=f"{APP_NAME} {APP_VERSION}")
     if not args:
         return 1
 
     if all_false(args, *ALL_COMMANDS):
-        return _run_amake(args)
+        return _run_amake_main(args)
 
     if args.get("init", True):
         return _run_command_init(args)
@@ -413,9 +372,6 @@ def main():
 
     if args.get("generate", True):
         return _run_command_generate(args)
-
-    if args.get("appconfig", True):
-        return _run_command_appconfig(args)
 
     return -1
 

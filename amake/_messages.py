@@ -51,7 +51,7 @@ class _Messages:
         self.MSG_ACTION_SCHEMA_WEBSITE = tr_("Goto Schema Website")
         self.MSG_CONFIGS_SAVE_SUCCESS = tr_("Configurations saved successfully")
         self.MSG_CONFIGS_SAVE_FAILURE = tr_("Failed to save configurations")
-        self.MSG_EDIT_APP_CONFIGS = tr_("Edit App Configs")
+        self.MSG_EDIT_APPSETTINGS = tr_("Edit App Configs")
         self.MSG_RESET_APP_CONFIGS = tr_("Reset App Configs")
         self.MSG_ASK_RESET_APP_CONFIGS = tr_("Do you want to reset app configs?")
         self.MSG_APP_CONFIGS_CHANGE_INFO = tr_(
@@ -95,6 +95,15 @@ class _Messages:
         self.MSG_LOAD_CONFIGS_DIALOG_TITLE = tr_("Load Configurations")
         self.MSG_CONFIGS_FILE_FILTER = tr_("Configurations Files")
         self.MSG_JSON_FILE_FILTER = tr_("JSON Files")
+
+        self.MSG_LANGUAGE_FIELD = tr_("Language")
+        self.MSG_HDPI_MODE_FIELD = tr_("High DPI Mode")
+        self.MSG_CONFIRM_EXIT_FIELD = tr_("Confirm Exit")
+
+        self.MSG_SAVE_SETTINGS_ERROR = tr_("Failed to save application settings!")
+        self.MSG_SETTINGS_SAVED = tr_(
+            "Application settings has been saved! Some changes may require a restart of the program."
+        )
 
 
 _messages: Optional[_Messages] = None

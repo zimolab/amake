@@ -3,9 +3,16 @@ import subprocess
 import sys
 import traceback
 import webbrowser
-from typing import List, Optional, Any, Callable
+from functools import partial
+from typing import List, Optional
 
-from pyguiadapterlite import FnExecuteWindow, Action, Menu, Separator as MenuSeparator
+from pyguiadapterlite import (
+    FnExecuteWindow,
+    Action,
+    Menu,
+    Separator as MenuSeparator,
+    SettingsWindow,
+)
 from pyguiadapterlite.components.textview import SimpleTextViewer
 
 from ._aboutdlg import AboutDialog, AboutSchemaDialog
@@ -13,13 +20,13 @@ from .cmd import AmakeCommand
 from .widgets import AmakeWidgets
 from .. import common, assets
 from .._messages import messages
-from ..appconfig import AmakeAppConfig
+from ..appsettings import AmakeAppSettings
 from ..makeoptions import MAKE_OPT_MAKE_BIN_KEY, MakeOptions
 from ..processor import ProcessorExecutor
 from ..schema import AmakeSchema, AmakeConfigurations
 from ..utils import move_to_center_of
 
-ACTION_ID_EDIT_APP_CONFIGS = "edit_app_configs"
+ACTION_ID_EDIT_APPSETTINGS = "edit_app_configs"
 ACTION_ID_RESET_APP_CONFIGS = "reset_app_configs"
 
 AMAKE_LICENSE_FILE = "LICENSE"
@@ -58,78 +65,89 @@ def _run_cmd_simple(
 
 # noinspection PyUnusedLocal
 class AmakeActionsManager(object):
+    HIDDEN_APPSETTINGS_FIELDS = (AmakeAppSettings.always_on_top,)
+
     def __init__(
         self,
         *,
-        app_config: AmakeAppConfig,
+        appsettings: AmakeAppSettings,
         schema: AmakeSchema,
         configurations: AmakeConfigurations,
         widgets: AmakeWidgets,
         processor_executor: ProcessorExecutor,
-        action_handler: Callable[[FnExecuteWindow, Action], Any],
     ):
-        self._app_config = app_config
+
+        self._msgs = messages()
+
+        self._appsettings = appsettings
+
+        self._visible_fields = {
+            field_name: field_def
+            for field_name, field_def in AmakeAppSettings.fields().items()
+            if field_def not in self.__class__.HIDDEN_APPSETTINGS_FIELDS
+        }
+
         self._schema = schema
         self._configurations = configurations
         self._widgets = widgets
         self._processor_executor = processor_executor
-        self._action_handler = action_handler
 
         self._menus = []
 
     def create(self) -> List[Menu]:
         tr_ = common.trfunc()
-        msgs = messages()
         if self._menus:
             return self._menus
         file_actions = [
-            Action(msgs.MSG_ACTION_SAVE_CONFIGS, self.on_save_configurations),
-            Action(msgs.MSG_ACTION_LOAD_CONFIGS, self.on_load_configurations),
+            Action(self._msgs.MSG_ACTION_SAVE_CONFIGS, self.on_save_configurations),
+            Action(self._msgs.MSG_ACTION_LOAD_CONFIGS, self.on_load_configurations),
             MenuSeparator(),
-            Action(msgs.MSG_ACTION_QUIT, self.quit),
+            Action(self._msgs.MSG_ACTION_QUIT, self.quit),
         ]
-        menu_file = Menu(title=msgs.MSG_MENU_FILE, actions=file_actions)
+        menu_file = Menu(title=self._msgs.MSG_MENU_FILE, actions=file_actions)
 
         tools_actions = [
-            Action(msgs.MSG_ACTION_TEST_MAKE_CMD, self.test_make_command),
-            Action(msgs.MSG_ACTION_PRINT_MAKE_HELP, self.print_make_help),
+            Action(self._msgs.MSG_ACTION_TEST_MAKE_CMD, self.test_make_command),
+            Action(self._msgs.MSG_ACTION_PRINT_MAKE_HELP, self.print_make_help),
             MenuSeparator(),
-            Action(msgs.MSG_ACTION_GENERATE_CMD, self.generate_command_line),
-            Action(msgs.MSG_ACTION_GENERATE_BUILD_SCRIPT, self.export_build_script),
+            Action(self._msgs.MSG_ACTION_GENERATE_CMD, self.generate_command_line),
+            Action(
+                self._msgs.MSG_ACTION_GENERATE_BUILD_SCRIPT, self.export_build_script
+            ),
             MenuSeparator(),
             Action(
-                msgs.MSG_EDIT_APP_CONFIGS,
-                on_triggered=self._edit_app_configs,
-                data=ACTION_ID_EDIT_APP_CONFIGS,
+                self._msgs.MSG_EDIT_APPSETTINGS,
+                on_triggered=self.show_appsettings_window,
+                data=ACTION_ID_EDIT_APPSETTINGS,
             ),
-            Action(
-                msgs.MSG_RESET_APP_CONFIGS,
-                on_triggered=self._reset_app_configs,
-                data=ACTION_ID_RESET_APP_CONFIGS,
-            ),
+            # Action(
+            #     msgs.MSG_RESET_APP_CONFIGS,
+            #     on_triggered=self._reset_app_configs,
+            #     data=ACTION_ID_RESET_APP_CONFIGS,
+            # ),
         ]
-        menu_tools = Menu(title=msgs.MSG_MENU_TOOLS, actions=tools_actions)
+        menu_tools = Menu(title=self._msgs.MSG_MENU_TOOLS, actions=tools_actions)
 
         menu_view = Menu(
-            title=msgs.MSG_MENU_VIEW,
+            title=self._msgs.MSG_MENU_VIEW,
             actions=[
                 Action(
-                    msgs.MSG_ACTION_ALWAYS_ON_TOP,
+                    self._msgs.MSG_ACTION_ALWAYS_ON_TOP,
                     self.set_always_on_top,
                     checkable=True,
-                    initial_checked=self._app_config.always_on_top,
+                    initial_checked=self._appsettings.always_on_top,
                 )
             ],
         )
 
         menu_help = Menu(
-            title=msgs.MSG_MENU_HELP,
+            title=self._msgs.MSG_MENU_HELP,
             actions=[
-                Action(msgs.MSG_ACTION_ABOUT, self.show_about_dialog),
-                Action(msgs.MSG_ACTION_LICENSE, self.show_license_dialog),
+                Action(self._msgs.MSG_ACTION_ABOUT, self.show_about_dialog),
+                Action(self._msgs.MSG_ACTION_LICENSE, self.show_license_dialog),
                 MenuSeparator(),
                 Action(
-                    msgs.MSG_ACTION_ABOUT_SCHEMA,
+                    self._msgs.MSG_ACTION_ABOUT_SCHEMA,
                     on_triggered=self.show_about_schema_dialog,
                 ),
             ],
@@ -138,7 +156,7 @@ class AmakeActionsManager(object):
         if self._schema.website:
             menu_help.actions.append(
                 Action(
-                    msgs.MSG_ACTION_SCHEMA_WEBSITE,
+                    self._msgs.MSG_ACTION_SCHEMA_WEBSITE,
                     on_triggered=self.goto_schema_website,
                 )
             )
@@ -147,27 +165,24 @@ class AmakeActionsManager(object):
         return self._menus
 
     def on_save_configurations(self, window: FnExecuteWindow, action: Action):
-        msgs = messages()
         window.close_param_validation_win()
         ret = self.update_and_save_configurations(window)
         if ret:
             window.show_information(
-                message=msgs.MSG_CONFIGS_SAVE_SUCCESS,
-                title=msgs.MSG_SUCCESS_DIALOG_TITLE,
+                message=self._msgs.MSG_CONFIGS_SAVE_SUCCESS,
+                title=self._msgs.MSG_SUCCESS_DIALOG_TITLE,
             )
         else:
             window.show_error(
-                message=msgs.MSG_CONFIGS_SAVE_FAILURE,
-                title=msgs.MSG_FAILURE_DIALOG_TITLE,
+                message=self._msgs.MSG_CONFIGS_SAVE_FAILURE,
+                title=self._msgs.MSG_FAILURE_DIALOG_TITLE,
             )
 
-    @staticmethod
-    def print_make_help(window: FnExecuteWindow, action: Action):
-        msgs = messages()
+    def print_make_help(self, window: FnExecuteWindow, action: Action):
         if window.is_function_executing():
             window.show_warning(
-                message=msgs.MSG_WAIT_EXECUTION_DONE,
-                title=msgs.MSG_WARNING_DIALOG_TITLE,
+                message=self._msgs.MSG_WAIT_EXECUTION_DONE,
+                title=self._msgs.MSG_WARNING_DIALOG_TITLE,
             )
             return
         window.close_param_validation_win()
@@ -178,13 +193,11 @@ class AmakeActionsManager(object):
             cmd, window, print_cmdline=True, show_error=True, print_output=True
         )
 
-    @staticmethod
-    def test_make_command(window: FnExecuteWindow, action: Action):
-        msgs = messages()
+    def test_make_command(self, window: FnExecuteWindow, action: Action):
         if window.is_function_executing():
             window.show_warning(
-                message=msgs.MSG_WAIT_EXECUTION_DONE,
-                title=msgs.MSG_WARNING_DIALOG_TITLE,
+                message=self._msgs.MSG_WAIT_EXECUTION_DONE,
+                title=self._msgs.MSG_WARNING_DIALOG_TITLE,
             )
             return
         window.close_param_validation_win()
@@ -200,8 +213,8 @@ class AmakeActionsManager(object):
         window.close()
 
     def set_always_on_top(self, window: FnExecuteWindow, action: Action):
-        self._app_config.always_on_top = action.is_checked()
-        window.set_always_on_top(self._app_config.always_on_top)
+        self._appsettings.always_on_top = action.is_checked()
+        window.set_always_on_top(self._appsettings.always_on_top)
 
     def update_configurations(self, window: FnExecuteWindow) -> bool:
         parameters_values = window.get_parameter_values()
@@ -259,7 +272,6 @@ class AmakeActionsManager(object):
         self.update_configurations(window)
 
     def generate_command_line(self, window: FnExecuteWindow, action: Action):
-        msgs = messages()
         window.close_param_validation_win()
         ret = self.update_configurations(window)
         if not ret:
@@ -271,43 +283,46 @@ class AmakeActionsManager(object):
                 configurations=self._configurations,
                 processor_executor=self._processor_executor,
             )
-            window.print(msgs.MSG_MAKE_CMD.ljust(12), ":", cmd.to_command_string())
+            window.print(
+                self._msgs.MSG_MAKE_CMD.ljust(12), ":", cmd.to_command_string()
+            )
             window.print()
 
-            window.print(msgs.MSG_MAKE_TARGET.ljust(12), ":", cmd.make_target)
+            window.print(self._msgs.MSG_MAKE_TARGET.ljust(12), ":", cmd.make_target)
             window.print()
 
-            window.print(msgs.MSG_MAKE_OPTIONS.ljust(12), ":")
+            window.print(self._msgs.MSG_MAKE_OPTIONS.ljust(12), ":")
             for opt in cmd.make_options:
                 if not opt:
                     continue
                 window.print(f"  {opt}")
             window.print()
 
-            window.print(msgs.MSG_VARIABLES.ljust(12), ":")
+            window.print(self._msgs.MSG_VARIABLES.ljust(12), ":")
             for name, value in cmd.user_variables.items():
                 window.print(f"  {name} = {value}")
             window.print()
 
             window.print(
-                msgs.MSG_OVERRIDE_VARIABLES.ljust(12), ":", str(cmd.override_variables)
+                self._msgs.MSG_OVERRIDE_VARIABLES.ljust(12),
+                ":",
+                str(cmd.override_variables),
             )
             window.print()
 
-            window.print(msgs.MSG_CMD_LINE.ljust(12), ":")
+            window.print(self._msgs.MSG_CMD_LINE.ljust(12), ":")
             window.print(cmd.to_command_string())
             window.print()
 
             window.print("=" * 80)
         except Exception as e:
 
-            window.print(msgs.MSG_FAILED_TO_GENERATE_CMD, ":", str(e))
+            window.print(self._msgs.MSG_FAILED_TO_GENERATE_CMD, ":", str(e))
             window.print()
             window.print("=" * 80)
             window.show_error(message=str(e))
 
     def export_build_script(self, window: FnExecuteWindow, action: Action):
-        msgs = messages()
         window.close_param_validation_win()
         ret = self.update_configurations(window)
         if not ret:
@@ -320,36 +335,34 @@ class AmakeActionsManager(object):
             )
             script = cmd.to_command_string()
             filepath = window.select_save_file(
-                title=msgs.MSG_GENERATE_SCRIPT_DIALOG_TITLE,
+                title=self._msgs.MSG_GENERATE_SCRIPT_DIALOG_TITLE,
                 initialfile="build.sh",
                 filetypes=[
-                    (msgs.MSG_SHELL_SCRIPT_FILE_TYPE, "*.sh"),
-                    (msgs.MSG_ALL_FILE_TYPE, "*.*"),
+                    (self._msgs.MSG_SHELL_SCRIPT_FILE_TYPE, "*.sh"),
+                    (self._msgs.MSG_ALL_FILE_TYPE, "*.*"),
                 ],
             )
             if not filepath:
                 return
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(script)
-            msg = msgs.MSG_BUILD_SCRIPT_GENERATED + filepath
+            msg = self._msgs.MSG_BUILD_SCRIPT_GENERATED + filepath
             window.print(msg)
             window.show_information(msg)
         except Exception as e:
-            msg = msgs.MSG_FAILED_TO_GENERATE_SCRIPT + str(e)
+            msg = self._msgs.MSG_FAILED_TO_GENERATE_SCRIPT + str(e)
             window.print(msg)
             window.show_error(msg)
             traceback.print_exc()
 
-    # noinspection PyMethodMayBeStatic
     def on_load_configurations(self, window: FnExecuteWindow, action: Action):
-        msgs = messages()
         try:
             filepath = window.select_open_file(
-                title=msgs.MSG_LOAD_CONFIGS_DIALOG_TITLE,
+                title=self._msgs.MSG_LOAD_CONFIGS_DIALOG_TITLE,
                 filetypes=[
-                    (msgs.MSG_CONFIGS_FILE_FILTER, "*.config.json"),
-                    (msgs.MSG_JSON_FILE_FILTER, "*.json"),
-                    (msgs.MSG_ALL_FILE_TYPE, "*.*"),
+                    (self._msgs.MSG_CONFIGS_FILE_FILTER, "*.config.json"),
+                    (self._msgs.MSG_JSON_FILE_FILTER, "*.json"),
+                    (self._msgs.MSG_ALL_FILE_TYPE, "*.*"),
                 ],
             )
             if not filepath:
@@ -358,36 +371,34 @@ class AmakeActionsManager(object):
             self.update_ui_from_configurations(window, new_configs)
         except Exception as e:
             window.show_error(
-                message=msgs.MSG_CONFIGS_LOAD_FAILURE,
-                title=msgs.MSG_FAILURE_DIALOG_TITLE,
+                message=self._msgs.MSG_CONFIGS_LOAD_FAILURE,
+                title=self._msgs.MSG_FAILURE_DIALOG_TITLE,
                 detail=str(e),
             )
 
-    # noinspection PyMethodMayBeStatic
     def show_about_dialog(self, window: FnExecuteWindow, action: Action):
-        msgs = messages()
-        window.show_custom_dialog(AboutDialog, title=msgs.MSG_ABOUT_DIALOG_TITLE)
+        window.show_custom_dialog(AboutDialog, title=self._msgs.MSG_ABOUT_DIALOG_TITLE)
 
     def show_about_schema_dialog(self, window: FnExecuteWindow, action: Action):
-        msgs = messages()
         window.show_custom_dialog(
-            AboutSchemaDialog, title=msgs.MSG_ABOUT_SCHEMA_TITLE, schema=self._schema
+            AboutSchemaDialog,
+            title=self._msgs.MSG_ABOUT_SCHEMA_TITLE,
+            schema=self._schema,
         )
 
-    @staticmethod
-    def show_license_dialog(window: FnExecuteWindow, action: Action):
-        msgs = messages()
+    def show_license_dialog(self, window: FnExecuteWindow, action: Action):
         try:
             text = assets.read_asset_text(AMAKE_LICENSE_FILE)
         except Exception as e:
             print(e, file=sys.stderr)
             window.show_error(
-                message=msgs.MSG_NO_LICENSE_FILE, title=msgs.MSG_ERROR_DIALOG_TITLE
+                message=self._msgs.MSG_NO_LICENSE_FILE,
+                title=self._msgs.MSG_ERROR_DIALOG_TITLE,
             )
             return
 
         viewer = SimpleTextViewer(
-            title=msgs.MSG_LICENSE_DIALOG_TITLE, width=825, height=600
+            title=self._msgs.MSG_LICENSE_DIALOG_TITLE, width=825, height=600
         )
         move_to_center_of(viewer, window.parent)
         viewer.set_text(text)
@@ -395,30 +406,43 @@ class AmakeActionsManager(object):
 
     def goto_schema_website(self, window: FnExecuteWindow, action: Action):
         url = (self._schema.website or "").strip()
-        msgs = messages()
         if not url:
             window.show_warning("Not Provided!")
             return
         ans = window.ask_yes_no(
-            message=msgs.MSG_OPEN_SCHEMA_WEBSITE_WARNING + url,
+            message=self._msgs.MSG_OPEN_SCHEMA_WEBSITE_WARNING + url,
         )
         if not ans:
             return
         webbrowser.open(url)
 
-    def _edit_app_configs(self, window: FnExecuteWindow, action: Action):
-        from ..tools import appconfig_edit
+    def _after_settings_window_confirmed(
+        self, window: FnExecuteWindow, appsettings: AmakeAppSettings
+    ):
+        try:
+            appsettings.save()
+        except BaseException as e:
+            window.show_error(self._msgs.MSG_SAVE_SETTINGS_ERROR, detail=str(e))
+        else:
+            window.show_information(self._msgs.MSG_SETTINGS_SAVED)
 
-        appconfig_edit(self._app_config)
-        self._action_handler(window, action)
+    def show_appsettings_window(self, window: FnExecuteWindow, action: Action):
+        window.show_sub_window(
+            SettingsWindow,
+            config=None,
+            modal=True,
+            settings=self._appsettings,
+            setting_fields=self._visible_fields,
+            after_save_callback=partial(self._after_settings_window_confirmed, window),
+        )
 
-    def _reset_app_configs(self, window: FnExecuteWindow, action: Action):
-        from ..tools import appconfig_reset
-
-        msgs = messages()
-        if not window.ask_yes_no(
-            message=msgs.MSG_ASK_RESET_APP_CONFIGS, title=msgs.MSG_CONFIRM_DIALOG_TITLE
-        ):
-            return
-        appconfig_reset(self._app_config, no_confirm=True)
-        self._action_handler(window, action)
+    # def _reset_app_configs(self, window: FnExecuteWindow, action: Action):
+    #     from ..tools import appconfig_reset
+    #
+    #     msgs = messages()
+    #     if not window.ask_yes_no(
+    #         message=msgs.MSG_ASK_RESET_APP_CONFIGS, title=msgs.MSG_CONFIRM_DIALOG_TITLE
+    #     ):
+    #         return
+    #     appconfig_reset(self._appsettings, no_confirm=True)
+    #     self._action_handler(window, action)

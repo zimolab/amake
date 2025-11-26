@@ -3,11 +3,14 @@ from tkinter.ttk import Frame, Button
 from typing import Union, Optional
 
 from pyguiadapterlite.components.tabview import TabView
+from pyguiadapterlite.core.hdpi import set_dpi_aware
 
-from ._general_tab import _GeneralPropertiesTab
+from ._general_page import _GeneralPropertiesTab
 from ._preview_window import PreviewWindow
-from ._variables_tab import _VariablesTab, DuplicatedVariableNameError
+from ._variables_page import _VariablesTab, DuplicatedVariableNameError
 from .. import common
+from .._messages import messages
+from ..common import get_appsettings
 from ..makeoptions import MakeOptions
 from ..schema import AmakeSchema
 from ..utils import move_to_desktop_center
@@ -20,6 +23,10 @@ class AmakeSchemaEditor(object):
         schema: AmakeSchema,
         size: tuple = (800, 600),
     ):
+
+        self._msgs = messages()
+        self._appsettings = get_appsettings()
+
         self._parent = parent
         self._size = size or (800, 600)
 
@@ -42,6 +49,7 @@ class AmakeSchemaEditor(object):
         self._setup_ui()
 
     def _setup_ui(self):
+
         tr_ = common.trfunc()
         self._parent.title(tr_("Amake Schema Editor"))
         self._parent.geometry(f"{self._size[0]}x{self._size[1]}")
@@ -88,6 +96,10 @@ class AmakeSchemaEditor(object):
 
     @classmethod
     def run(cls, schema: AmakeSchema, *args, **kwargs) -> Optional[AmakeSchema]:
+        appsettings = get_appsettings()
+        if appsettings.hdpi_mode:
+            set_dpi_aware(True)
+
         app = Tk()
         editor = cls(app, schema, *args, **kwargs)
         move_to_desktop_center(app)

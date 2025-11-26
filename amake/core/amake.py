@@ -10,20 +10,15 @@ from pyguiadapterlite import (
     uprint,
     FnExecuteWindowConfig,
     is_function_cancelled,
-    Action,
 )
 
-from .actions import (
-    AmakeActionsManager,
-    ACTION_ID_EDIT_APP_CONFIGS,
-    ACTION_ID_RESET_APP_CONFIGS,
-)
+from .actions import AmakeActionsManager
 from .cmd import AmakeCommand
 from .eventhandler import AmakeEventHandler, EventType
 from .widgets import AmakeWidgets
 from .. import processors
 from .._messages import messages
-from ..appconfig import AmakeAppConfig
+from ..appsettings import AmakeAppSettings
 from ..makeoptions import MakeOptions
 from ..processor import ProcessorExecutor
 from ..schema import AmakeSchema, AmakeConfigurations
@@ -33,15 +28,14 @@ class Amake(object):
 
     def __init__(
         self,
-        app_config: Optional[AmakeAppConfig],
+        appsettings: Optional[AmakeAppSettings],
         schema: AmakeSchema,
         configurations: AmakeConfigurations,
     ):
+        self._msgs = messages()
         self._schema = schema
         self._configurations = configurations
-        self._app_config = app_config
-
-        self._save_app_config_before_exit = True
+        self._appsettings = appsettings
 
         self._gui_adapter: Optional[GUIAdapter] = None
 
@@ -49,12 +43,11 @@ class Amake(object):
 
         self._widgets = AmakeWidgets()
         self._menu_manager = AmakeActionsManager(
-            app_config=self._app_config,
+            appsettings=self._appsettings,
             schema=self._schema,
             configurations=self._configurations,
             widgets=self._widgets,
             processor_executor=self._processor_executor,
-            action_handler=self.handle_action_event,
         )
         self._event_handler = AmakeEventHandler()
         self._event_handler.add_event_callback(
@@ -72,19 +65,12 @@ class Amake(object):
 
         self._execute_start_time = 0.0
 
-    @property
-    def save_app_config_before_exit(self) -> bool:
-        return self._save_app_config_before_exit
-
-    @staticmethod
-    def _on_run(command: AmakeCommand):
-
-        msgs = messages()
+    def _on_run(self, command: AmakeCommand):
 
         def _debug_print(msg):
             uprint(f"\033[33m{msg}\033[0m")
 
-        _debug_print(msgs.MSG_RUNNING_COMMAND + command.to_command_string())
+        _debug_print(self._msgs.MSG_RUNNING_COMMAND + command.to_command_string())
         _hinted = False
 
         process = subprocess.Popen(
@@ -104,34 +90,31 @@ class Amake(object):
             time.sleep(0.01)
             if is_function_cancelled():
                 if not _hinted:
-                    _debug_print(msgs.MSG_ASK_CANCEL_EXECUTION)
-                    _debug_print(msgs.MSG_TERMINATING_PROCESS)
+                    _debug_print(self._msgs.MSG_ASK_CANCEL_EXECUTION)
+                    _debug_print(self._msgs.MSG_TERMINATING_PROCESS)
                     _hinted = True
                 process.terminate()
-        _debug_print(msgs.MSG_PROCESS_FINISHED)
-        _debug_print(msgs.MSG_EXIT_CODE + str(process.returncode))
+        _debug_print(self._msgs.MSG_PROCESS_FINISHED)
+        _debug_print(self._msgs.MSG_EXIT_CODE + str(process.returncode))
 
     def after_window_create(self, window: FnExecuteWindow):
         self._widgets.create(window)
         self._widgets.set_targets(self._schema.targets)
 
-        window.clear_output_on_execute.set(self._app_config.clear_output_on_run)
-        window.set_always_on_top(self._app_config.always_on_top)
+        window.set_always_on_top(self._appsettings.always_on_top)
 
         self._update_ui(window, self._configurations)
 
     def before_window_close(self, window: FnExecuteWindow) -> bool:
-        msgs = messages()
 
         window.close_param_validation_win()
         ret = window.ask_yes_no_cancel(
-            message=msgs.MSG_QUIT_CONFIRMATION,
-            title=msgs.MSG_QUIT_DIALOG_TITLE,
+            message=self._msgs.MSG_QUIT_CONFIRMATION,
+            title=self._msgs.MSG_QUIT_DIALOG_TITLE,
         )
         if ret is None:
             return False
-        if self._save_app_config_before_exit:
-            self.update_and_save_app_config(window)
+
         if ret:
             return self._menu_manager.update_and_save_configurations(window)
         return True
@@ -164,11 +147,10 @@ class Amake(object):
     def after_execute(
         self, window: FnExecuteWindow, result: Any, exception: Optional[Exception]
     ):
-        msgs = messages()
         end_execute_time = time.time_ns()
         window.print("=" * 80)
         window.print(
-            msgs.MSG_EXECUTION_TIME
+            self._msgs.MSG_EXECUTION_TIME
             + f"{(end_execute_time - self._execute_start_time)/1e9} s"
         )
         window.print("=" * 80)
@@ -179,11 +161,7 @@ class Amake(object):
         self._widgets.set_current_target(configurations.target)
 
     def update_app_config(self, window: FnExecuteWindow):
-        self._app_config.clear_output_on_run = window.clear_output_on_execute.get()
-
-    def update_and_save_app_config(self, window: FnExecuteWindow):
-        self.update_app_config(window)
-        self._app_config.save(encoding="utf-8", indent=2, ensure_ascii=False)
+        self._appsettings.clear_output_on_run = window.clear_output_on_execute.get()
 
     def run(self):
         parameter_configs = {
@@ -191,20 +169,11 @@ class Amake(object):
             **MakeOptions().parameter_configs,
         }
 
-        msg = messages()
-
         title = getattr(builtins, "_amake_app_name", "amake")
         if self._configurations.filepath:
             title += f" - {self._configurations.filepath}"
 
-        hdpi_factor = self._app_config.hdpi_factor
-        if hdpi_factor <= 0:
-            hdpi_factor = 100
-
-        adapter = GUIAdapter(
-            hdpi_mode=self._app_config.hdpi_mode,
-            scale_factor_divisor=hdpi_factor,
-        )
+        adapter = GUIAdapter(dpi_aware=self._appsettings.hdpi_mode)
         self._gui_adapter = adapter
         adapter.add_universal(
             self._on_run,
@@ -214,33 +183,23 @@ class Amake(object):
             after_execute_callback=self._event_handler.after_execute,
             window_config=FnExecuteWindowConfig(
                 title=title,
-                execute_button_text=msg.MSG_EXE_BTN_TEXT,
-                cancel_button_text=msg.MSG_CANCEL_BTN_TEXT,
-                clear_button_text=msg.MSG_CLEAR_BTN_TEXT,
-                clear_checkbox_text=msg.MSG_CLEAR_CHECKBOX_TEXT,
+                execute_button_text=self._msgs.MSG_EXE_BTN_TEXT,
+                cancel_button_text=self._msgs.MSG_CANCEL_BTN_TEXT,
+                clear_button_text=self._msgs.MSG_CLEAR_BTN_TEXT,
+                clear_checkbox_text=self._msgs.MSG_CLEAR_CHECKBOX_TEXT,
                 after_window_create_callback=self._event_handler.after_window_create,
                 before_window_close_callback=self._event_handler.before_window_close,
                 print_function_result=False,
                 show_function_result=False,
-                output_tab_title=msg.MSG_OUTPUT_TAB_TITLE,
-                document_tab_title=msg.MSG_DOCUMENT_TAB_TITLE,
-                default_parameter_group_name=msg.MSG_DEFAULT_PARAM_GROUP_NAME,
+                output_tab_title=self._msgs.MSG_OUTPUT_TAB_TITLE,
+                document_tab_title=self._msgs.MSG_DOCUMENT_TAB_TITLE,
+                default_parameter_group_name=self._msgs.MSG_DEFAULT_PARAM_GROUP_NAME,
                 menus=self._menu_manager.create(),
             ),
             parameter_configs=parameter_configs,
         )
         adapter.run()
         self._gui_adapter = None
-
-    def handle_action_event(self, window: FnExecuteWindow, action: Action):
-        msgs = messages()
-        if action.data in [ACTION_ID_EDIT_APP_CONFIGS, ACTION_ID_RESET_APP_CONFIGS]:
-            window.show_information(
-                message=msgs.MSG_APP_CONFIGS_CHANGE_INFO,
-                title=msgs.MSG_INFO_DIALOG_TITLE,
-            )
-            self._save_app_config_before_exit = False
-            return
 
     @staticmethod
     def create_processor_executor() -> ProcessorExecutor:

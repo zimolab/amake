@@ -8,18 +8,15 @@ from .common import (
     curdir,
     DEFAULT_AMAKE_CONFIGS_FILENAMES,
 )
-from ..appconfig import AmakeAppConfig
+from ..common import get_appsettings
 from ..utils import show_error_message
 
 
 def amake_main(
-    app_config: AmakeAppConfig,
     schema_file: Optional[str] = None,
     config_file: Optional[str] = None,
     current_dir: Union[str, Path, None] = None,
 ) -> int:
-    if not app_config:
-        raise ValueError("app_config is not set")
 
     from ..schema import AmakeSchema, AmakeConfigurations
 
@@ -66,10 +63,8 @@ def amake_main(
     from ..core import Amake
 
     try:
-        app = Amake(app_config, schema, config)
+        app = Amake(get_appsettings(), schema, config)
         app.run()
-        if app.save_app_config_before_exit:
-            app_config.save(ensure_ascii=False, indent=2, encoding="utf-8")
     except Exception as e:
         _error(f"Failed to run amake: {e}")
         print(f"Error: {e}")

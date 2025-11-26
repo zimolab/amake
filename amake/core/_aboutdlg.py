@@ -1,4 +1,3 @@
-import builtins
 from tkinter import Tk, Toplevel, Widget
 from tkinter.ttk import Frame, Label
 from typing import Union, Optional
@@ -7,14 +6,15 @@ from pyexpat.errors import messages
 from pyguiadapterlite import BaseSimpleDialog
 
 from .._messages import messages
+from ..consts import (
+    APP_NAME,
+    APP_VERSION,
+    APP_DESCRIPTION,
+    APP_COPYRIGHT,
+    APP_REPO,
+    APP_LICENSE,
+)
 from ..schema import AmakeSchema
-
-AMAKE_APP_NAME = getattr(builtins, "_amake_app_name", "amake")
-AMAKE_APP_VERSION = getattr(builtins, "_amake_app_version", "0.0.0")
-AMAKE_APP_DESCRIPTION = getattr(builtins, "_amake_app_description", "")
-AMAKE_APP_REPOSITORY = getattr(builtins, "_amake_app_repo", "")
-AMAKE_APP_LICENSE = getattr(builtins, "_amake_app_license", "")
-AMAKE_APP_COPYRIGHT = getattr(builtins, "_amake_app_copyright", "")
 
 
 class AboutFrame(Frame):
@@ -30,12 +30,12 @@ class AboutFrame(Frame):
 
         # 默认的about内容
         self.about_data = {
-            "title": AMAKE_APP_NAME,
-            "version": AMAKE_APP_VERSION,
-            "description": AMAKE_APP_DESCRIPTION,
-            "copyright": AMAKE_APP_COPYRIGHT,
-            "website": AMAKE_APP_REPOSITORY,
-            "license": AMAKE_APP_LICENSE,
+            "title": APP_NAME,
+            "version": APP_VERSION,
+            "description": APP_DESCRIPTION,
+            "copyright": APP_COPYRIGHT,
+            "website": APP_REPO,
+            "license": APP_LICENSE,
         }
 
         self.create_widgets()
