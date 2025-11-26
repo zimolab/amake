@@ -2,12 +2,13 @@ import builtins
 from pathlib import Path
 from typing import Optional, Union
 
+from amake.consts import GLOBAL_VARNAME_DEBUG_FUNC, GLOBAL_VARNAME_ERROR_FUNC
 
 DEFAULT_AMAKE_SCHEMA_FILENAMES = ("amake.schema.json",)
 DEFAULT_AMAKE_CONFIGS_FILENAMES = ("amake.config.json",)
 
-_debug = getattr(builtins, "_amake_debug", print)
-_error = getattr(builtins, "_amake_error", print)
+_debug = getattr(builtins, GLOBAL_VARNAME_DEBUG_FUNC, print)
+_error = getattr(builtins, GLOBAL_VARNAME_ERROR_FUNC, print)
 
 
 def find_default_schema_file(

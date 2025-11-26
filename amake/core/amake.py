@@ -1,4 +1,3 @@
-import builtins
 import subprocess
 import time
 import traceback
@@ -19,6 +18,7 @@ from .widgets import AmakeWidgets
 from .. import processors
 from .._messages import messages
 from ..appsettings import AmakeAppSettings
+from ..consts import APP_NAME
 from ..makeoptions import MakeOptions
 from ..processor import ProcessorExecutor
 from ..schema import AmakeSchema, AmakeConfigurations
@@ -169,7 +169,7 @@ class Amake(object):
             **MakeOptions().parameter_configs,
         }
 
-        title = getattr(builtins, "_amake_app_name", "amake")
+        title = APP_NAME
         if self._configurations.filepath:
             title += f" - {self._configurations.filepath}"
 
