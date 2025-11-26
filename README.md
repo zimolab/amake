@@ -15,7 +15,6 @@ Usage:
     amake edit [-C <dir> | --current-dir=<dir>] [-T | --text-editor] [<schemafile>]
     amake process [-C <dir> | --current-dir=<dir>] [--vars=<vars,...>] [<schemafile>] [<configfile>]
     amake generate [-C <dir> | --current-dir=<dir>] [-o <outputfile> | --output=<outputfile>] [-Y | --yes] [<schemafile>] [<configfile>]
-    amake appconfig (--set=<config-paris> | --reset | --list | --edit) [-y | --yes]
 
 Commands:
     init        Initialize a new amake project in the current directory. An amake project means a directory
@@ -97,22 +96,6 @@ Options:
 
     -Y, --yes                                When specified, it will not ask for confirmation before some important
                                              operations, such as generating the build script or resetting the app config .etc.
-
-    --set=<config-paris>                     This option is used with the "appconfig" command. It is used to set the value
-                                             of a specific config item. Syntax: --set="config1=value1,config2=value2,...".
-                                             For example, user can change the locale of the app by the following command:
-                                                amake appconfig --set=locale=en_US
-
-    --reset                                  This option is used with the "appconfig" command. It is used to reset the
-                                             app config. Sometimes, the app config file maybe corrupted, this option will
-                                             remove the app config file and create a new one with default values.
-
-    --list                                   This option is used with the "appconfig" command. It is used to list all
-                                             config items and their current values.
-
-    --edit                                   This option is used with the "appconfig" command. It is used to edit the
-                                             app config file in a text editor.
-
 """
 ```
 
