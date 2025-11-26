@@ -51,12 +51,7 @@ class _Messages:
         self.MSG_ACTION_SCHEMA_WEBSITE = tr_("Goto Schema Website")
         self.MSG_CONFIGS_SAVE_SUCCESS = tr_("Configurations saved successfully")
         self.MSG_CONFIGS_SAVE_FAILURE = tr_("Failed to save configurations")
-        self.MSG_EDIT_APPSETTINGS = tr_("Edit App Configs")
-        self.MSG_RESET_APP_CONFIGS = tr_("Reset App Configs")
-        self.MSG_ASK_RESET_APP_CONFIGS = tr_("Do you want to reset app configs?")
-        self.MSG_APP_CONFIGS_CHANGE_INFO = tr_(
-            "The modifications to the app config file will be applied after restarting the application."
-        )
+        self.MSG_EDIT_APPSETTINGS = tr_("Settings")
         self.MSG_ACTION_ABOUT_SCHEMA = tr_("About Schema")
         self.MSG_ABOUT_SCHEMA_TITLE = tr_("About Schema")
         self.MSG_SCHEMA_AUTHOR = tr_("Author")
