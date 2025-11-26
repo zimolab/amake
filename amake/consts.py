@@ -1,6 +1,6 @@
 import os
 
-from amake.thirdparty import platformdirs
+from .thirdparty import platformdirs
 
 APP_NAME = "amake"
 APP_AUTHOR = "zimolab"
