@@ -180,3 +180,4 @@ Makefile
 poetry.lock
 *.whl
 tmp/
+zipapp_dist/
