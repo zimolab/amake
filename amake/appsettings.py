@@ -6,14 +6,17 @@ from pyguiadapterlite.types import LooseChoiceValue, BoolValue2
 
 from ._messages import messages
 
+LANGS = ["auto", "en_US", "zh_CN"]
+DEFAULT_LANG = "auto"
+
 
 class AmakeAppSettings(JsonSettingsBase):
     _msgs = messages()
 
     locale = LooseChoiceValue(
         label=_msgs.MSG_LANGUAGE_FIELD,
-        choices=["auto", "en_US", "zh_CN"],
-        default_value="auto",
+        choices=LANGS,
+        default_value=DEFAULT_LANG,
     )
     always_on_top = BoolValue2(
         label=_msgs.MSG_ACTION_ALWAYS_ON_TOP, default_value=False
