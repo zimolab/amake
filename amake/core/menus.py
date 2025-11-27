@@ -64,7 +64,7 @@ def _run_cmd_simple(
 
 
 # noinspection PyUnusedLocal
-class AmakeActionsManager(object):
+class AmakeMenus(object):
     HIDDEN_APPSETTINGS_FIELDS = (AmakeAppSettings.always_on_top,)
 
     def __init__(

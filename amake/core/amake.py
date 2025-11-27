@@ -11,7 +11,7 @@ from pyguiadapterlite import (
     is_function_cancelled,
 )
 
-from .actions import AmakeActionsManager
+from .menus import AmakeMenus
 from .cmd import AmakeCommand
 from .eventhandler import AmakeEventHandler, EventType
 from .widgets import AmakeWidgets
@@ -42,7 +42,7 @@ class Amake(object):
         self._processor_executor = self.create_processor_executor()
 
         self._widgets = AmakeWidgets()
-        self._menu_manager = AmakeActionsManager(
+        self._menus_manager = AmakeMenus(
             appsettings=self._appsettings,
             schema=self._schema,
             configurations=self._configurations,
@@ -117,7 +117,7 @@ class Amake(object):
                 return False
 
             if ret:
-                return self._menu_manager.update_and_save_configurations(window)
+                return self._menus_manager.update_and_save_configurations(window)
             return True
         return True
 
@@ -128,7 +128,7 @@ class Amake(object):
         # update_configurations()会从当前界面收集参数值，并更新self._configurations
         # 如果发现非法的参数值，该函数会返回False
         # 可以根据该函数的返回值决定是否继续执行
-        ret = self._menu_manager.update_configurations(window)
+        ret = self._menus_manager.update_configurations(window)
         if not ret:
             # 返回None，终止执行
             return None
@@ -196,7 +196,7 @@ class Amake(object):
                 output_tab_title=self._msgs.MSG_OUTPUT_TAB_TITLE,
                 document_tab_title=self._msgs.MSG_DOCUMENT_TAB_TITLE,
                 default_parameter_group_name=self._msgs.MSG_DEFAULT_PARAM_GROUP_NAME,
-                menus=self._menu_manager.create(),
+                menus=self._menus_manager.create(),
             ),
             parameter_configs=parameter_configs,
         )
