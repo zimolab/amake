@@ -105,7 +105,7 @@ class _Messages:
         self.MSG_SCHEMA_EDITOR_VARS_TAB_TITLE = tr_("Variables")
         self.MSG_SCHEMA_EDITOR_CANCEL_BTN_TEXT = tr_("Cancel")
         self.MSG_SCHEMA_EDITOR_SAVE_BTN_TEXT = tr_("Save")
-        self.MSG_SCHEMA_EDITOR_PREVIEW_BTN_TEXT = tr_("Save")
+        self.MSG_SCHEMA_EDITOR_PREVIEW_BTN_TEXT = tr_("Preview")
         self.MSG_SCHEMA_EDITOR_DUPLICATE_VAR_ERROR = tr_(
             "Duplicated variable names found: {}"
         )
