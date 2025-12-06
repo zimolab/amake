@@ -21,6 +21,7 @@ from .widgets import AmakeWidgets
 from .. import assets
 from .._messages import messages
 from ..appsettings import AmakeAppSettings
+from ..consts import APP_SETTINGS_FILE
 from ..makeoptions import MAKE_OPT_MAKE_BIN_KEY, MakeOptions
 from ..processor import ProcessorExecutor
 from ..schema import AmakeSchema, AmakeConfigurations
@@ -414,7 +415,7 @@ class AmakeMenus(object):
         self, window: FnExecuteWindow, appsettings: AmakeAppSettings
     ):
         try:
-            appsettings.save()
+            appsettings.save(APP_SETTINGS_FILE)
         except BaseException as e:
             window.show_error(self._msgs.MSG_SAVE_SETTINGS_ERROR, detail=str(e))
         else:
