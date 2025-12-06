@@ -1,1 +1,1 @@
-pyguiadapterlite>=0.7.1
+pyguiadapterlite >= 0.7.2
